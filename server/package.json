@@ -1,0 +1,9 @@
+{
+  "name": ".",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "repository": "github.com/zhixuan2333/taruto",
+  "author": "github.com/zhixuan2333",
+  "license": "MIT",
+  "private": true
+}
