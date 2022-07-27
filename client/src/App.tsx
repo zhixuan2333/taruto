@@ -1,49 +1,80 @@
-import React, { useEffect, useState } from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
+import "./App.css";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 
-const socket = io("127.0.0.1:8080");
+function Box(props: JSX.IntrinsicElements["mesh"]) {
+    const ref = useRef<THREE.Mesh>(null!);
+    const [hovered, hover] = useState(false);
+    const [clicked, click] = useState(false);
+    useFrame((state, delta) => (ref.current.rotation.x += 0.01));
+    return (
+        <mesh
+            {...props}
+            ref={ref}
+            scale={clicked ? 1.5 : 1}
+            onClick={(event) => click(!clicked)}
+            onPointerOver={(event) => hover(true)}
+            onPointerOut={(event) => hover(false)}
+        >
+            <boxGeometry args={[2, 2, 1]} />
+            <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
+        </mesh>
+    );
+}
+
+// class Masu {
+//     // public GameObject = new THREE.Mesh(
+//     //     new THREE.BoxGeometry(1, 1, 1),
+//     //     new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+//     // );
+
+//     public GameObject: THREE.Mesh;
+//     public Position: THREE.Vector3;
+//     public GoalPlayer: number;
+
+//     // 連結管理
+//     public _prev: Masu;
+//     public _next: Masu;
+//     public _nextForGoal: Masu;
+//     constructor(
+//         gameObject: THREE.Mesh,
+//         position: THREE.Vector3,
+//         goalPlayer: number
+//     ) {
+//         this.Position = position;
+//         this.GoalPlayer = goalPlayer;
+//         this._prev = null;
+//         this._next = null;
+//         this._nextForGoal = null;
+//     }
+// }
+
+// class Player {
+//     // public Masu: Masu;
+//     public _begainMasu: Masu;
+//     public _endMasu: Masu;
+//     public _spawnMasu: Masu;
+//     constructor(beginMasu: Masu, endMasu: Masu, spawnMasu: Masu) {
+//         this._begainMasu = beginMasu;
+//         this._endMasu = endMasu;
+//         this._spawnMasu = spawnMasu;
+//     }
+// }
+
+// const socket = io("127.0.0.1:8080");
 
 function App() {
-    const [isConnected, setIsConnected] = useState(socket.connected);
-    const [lastPong, setLastPong] = useState("");
-
-    useEffect(() => {
-        socket.on("connect", () => {
-            setIsConnected(true);
-        });
-
-        socket.on("disconnect", () => {
-            setIsConnected(false);
-        });
-
-        socket.on("pong", () => {
-            setLastPong(new Date().toISOString());
-        });
-
-        return () => {
-            socket.off("connect");
-            socket.off("disconnect");
-            socket.off("pong");
-        };
-    }, []);
     return (
-        <div className="App">
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-                <p>
-                    Edit <code>src/App.tsx</code> and save to reload.
-                </p>
-                <a
-                    className="App-link"
-                    href="https://reactjs.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Learn React
-                </a>
-            </header>
+        <div style={{ width: "100vw", height: "100vh" }}>
+            <Canvas>
+                <ambientLight />
+                <pointLight position={[10, 10, 10]} />
+                <Box position={[-1.2, 1, 0]} />
+                <Box position={[1.2, 0, 0]} />
+                <OrbitControls makeDefault />
+            </Canvas>
         </div>
     );
 }
