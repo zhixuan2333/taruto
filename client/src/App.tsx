@@ -2,12 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
 import { Canvas, useFrame } from "@react-three/fiber";
-import {
-    Effects,
-    OrbitControls,
-    OrthographicCamera,
-    PerspectiveCamera,
-} from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
 function Box(props: JSX.IntrinsicElements["mesh"]) {
@@ -40,7 +35,7 @@ class Masu {
     public GoalPlayer: number;
 
     // 0: normal, 1: goal, 2: turn 3: spawn
-    public type: number = 0;
+    public _type: number = 0;
 
     // 連結管理
     public _prev: Masu | null;
@@ -84,6 +79,7 @@ type InstancesProps = {
 
 function Instances({ Masus, temp }: InstancesProps) {
     const ref = useRef<THREE.InstancedMesh>(null!);
+    const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
     useEffect(() => {
         // Set positions
         for (let i = 0; i < Masus.length; i++) {
@@ -95,6 +91,22 @@ function Instances({ Masus, temp }: InstancesProps) {
             temp.updateMatrix();
 
             ref.current.setMatrixAt(i, temp.matrix);
+
+            // WIP: Need help
+            switch (Masus[i]._type) {
+                case 0:
+                    shaderRef.current.color.set(0x00ff00);
+                    break;
+                case 1:
+                    shaderRef.current.color.set(0xff0000);
+                    break;
+                case 2:
+                    shaderRef.current.color.set(0x0000ff);
+                    break;
+                case 3:
+                    shaderRef.current.color.set(0xffff00);
+                    break;
+            }
         }
         // Update the instance
         ref.current.instanceMatrix.needsUpdate = true;
@@ -102,7 +114,7 @@ function Instances({ Masus, temp }: InstancesProps) {
     return (
         <instancedMesh ref={ref} args={[undefined, undefined, Masus.length]}>
             <boxGeometry args={[0.8, 0.1, 0.8]} />
-            <meshPhongMaterial color="#049ef4" />
+            <meshPhongMaterial ref={shaderRef} />
         </instancedMesh>
     );
 }
@@ -199,9 +211,16 @@ function App() {
         for (let j = 0; j < masuCount; j++) {
             const masu = new Masu(rawPostion[j], 1);
 
-            // switch (j) {
-            //     case j >
-            // }
+            // Masu type
+            if (j == 0) {
+                masu._type = 2;
+            } else if (j <= 4) {
+                masu._type = 1;
+            } else if (j <= 13) {
+                masu._type = 0;
+            } else if (j <= 17) {
+                masu._type = 3;
+            }
 
             // 普通の Masu は-1
             if (j <= 4 && j >= 1) {
@@ -237,7 +256,7 @@ function App() {
     const camera = new THREE.PerspectiveCamera();
     camera.position.x = 15;
     // camera.position.z = 6;
-    camera.position.y = 20;
+    camera.position.y = 10;
     camera.zoom = 1;
 
     console.log(_allMasu);
