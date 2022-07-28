@@ -2,8 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Effects, OrbitControls } from "@react-three/drei";
-import { Vector3 } from "three";
+import {
+    Effects,
+    OrbitControls,
+    OrthographicCamera,
+    PerspectiveCamera,
+} from "@react-three/drei";
+import * as THREE from "three";
 
 function Box(props: JSX.IntrinsicElements["mesh"]) {
     const ref = useRef<THREE.Mesh>(null!);
@@ -31,9 +36,11 @@ class Masu {
     //     new THREE.MeshBasicMaterial({ color: 0x00ff00 })
     // );
 
-    // public GameObject: THREE.Mesh;
     public Position: THREE.Vector3;
     public GoalPlayer: number;
+
+    // 0: normal, 1: goal, 2: turn 3: spawn
+    public type: number = 0;
 
     // 連結管理
     public _prev: Masu | null;
@@ -53,19 +60,51 @@ class Masu {
 }
 
 class Player {
-    // public Masu: Masu;
+    public _gameObject: THREE.Object3D | null;
     public _beginMasu: Masu | null;
     public _endMasu: Masu | null;
     public _spawnMasu: Masu | null;
     constructor(
+        _gameObject: THREE.Object3D | null,
         beginMasu: Masu | null,
         endMasu: Masu | null,
         spawnMasu: Masu | null
     ) {
+        this._gameObject = _gameObject;
         this._beginMasu = beginMasu;
         this._endMasu = endMasu;
         this._spawnMasu = spawnMasu;
     }
+}
+
+type InstancesProps = {
+    Masus: Masu[];
+    temp: THREE.Object3D;
+};
+
+function Instances({ Masus, temp }: InstancesProps) {
+    const ref = useRef<THREE.InstancedMesh>(null!);
+    useEffect(() => {
+        // Set positions
+        for (let i = 0; i < Masus.length; i++) {
+            temp.position.set(
+                Masus[i].Position.x,
+                Masus[i].Position.y,
+                Masus[i].Position.z
+            );
+            temp.updateMatrix();
+
+            ref.current.setMatrixAt(i, temp.matrix);
+        }
+        // Update the instance
+        ref.current.instanceMatrix.needsUpdate = true;
+    }, []);
+    return (
+        <instancedMesh ref={ref} args={[undefined, undefined, Masus.length]}>
+            <boxGeometry args={[0.8, 0.1, 0.8]} />
+            <meshPhongMaterial color="#049ef4" />
+        </instancedMesh>
+    );
 }
 
 // const socket = io("127.0.0.1:8080");
@@ -75,33 +114,32 @@ function App() {
     const mapPosition: THREE.Vector3[] = [
         // 左下を0,0にする
         // turn point
-        new Vector3(5, 0, 0),
-
+        new THREE.Vector3(5, 0, 0),
         // Goal Masu
-        new Vector3(5, 0, 1),
-        new Vector3(5, 0, 2),
-        new Vector3(5, 0, 3),
-        new Vector3(5, 0, 4),
-
+        new THREE.Vector3(5, 0, 1),
+        new THREE.Vector3(5, 0, 2),
+        new THREE.Vector3(5, 0, 3),
+        new THREE.Vector3(5, 0, 4),
         // normal
-        new Vector3(4, 0, 0),
-        new Vector3(4, 0, 1),
-        new Vector3(4, 0, 2),
-        new Vector3(4, 0, 3),
-        new Vector3(4, 0, 4),
-
-        new Vector3(3, 0, 4),
-        new Vector3(2, 0, 4),
-        new Vector3(1, 0, 4),
-        new Vector3(0, 0, 4),
+        new THREE.Vector3(4, 0, 0),
+        new THREE.Vector3(4, 0, 1),
+        new THREE.Vector3(4, 0, 2),
+        new THREE.Vector3(4, 0, 3),
+        new THREE.Vector3(4, 0, 4),
+        new THREE.Vector3(3, 0, 4),
+        new THREE.Vector3(2, 0, 4),
+        new THREE.Vector3(1, 0, 4),
+        new THREE.Vector3(0, 0, 4),
         // spawn
-        new Vector3(1, 0, 1),
-        new Vector3(2, 0, 1),
-        new Vector3(1, 0, 2),
-        new Vector3(2, 0, 2),
+        new THREE.Vector3(1, 0, 1),
+        new THREE.Vector3(2, 0, 1),
+        new THREE.Vector3(1, 0, 2),
+        new THREE.Vector3(2, 0, 2),
     ];
     const playerCount: number = 4;
-    const masuCount: number = 15;
+    const masuCount: number = 18;
+    const BOARD_R: number = 5;
+    const size: number = 10;
 
     const indexToheta: number = (2.0 * Math.PI) / masuCount;
     const thetaForBasePostionOfs: number = Math.PI / 4.0;
@@ -109,14 +147,69 @@ function App() {
         const thetaForBaseRot = i * indexToheta;
         const thetaForBasePostion = thetaForBasePostionOfs - thetaForBaseRot;
 
-        const player = new Player(null, null, null);
+        const player = new Player(new THREE.Object3D(), null, null, null);
+        player._gameObject?.position.set(
+            BOARD_R * Math.cos(thetaForBasePostion),
+            0,
+            BOARD_R * Math.sin(thetaForBasePostion)
+        );
+        player._gameObject?.rotation.set(0, thetaForBaseRot, 0);
 
         const masuBeginIndex = _allMasu.length;
+
+        let rawPostion: THREE.Vector3[] = [];
+
+        switch (i) {
+            default:
+                rawPostion = mapPosition;
+                break;
+
+            case 1:
+                rawPostion = mapPosition.map((v) => {
+                    const v2 = v.clone();
+                    v2.x = v.z;
+                    v2.z = v.x;
+                    v2.z *= -1;
+                    v2.z += size;
+                    return v2;
+                });
+                break;
+            case 2:
+                rawPostion = mapPosition.map((v) => {
+                    const v2 = v.clone();
+                    v2.x = v.z;
+                    v2.z = v.x;
+                    v2.x *= -1;
+                    v2.x += size;
+                    return v2;
+                });
+                break;
+
+            case 3:
+                rawPostion = mapPosition.map((v) => {
+                    const v2 = v.clone();
+                    v2.x *= -1;
+                    v2.z *= -1;
+                    v2.x += size;
+                    v2.z += size;
+                    return v2;
+                });
+                break;
+        }
         for (let j = 0; j < masuCount; j++) {
-            const masu = new Masu(mapPosition[j], 1);
+            const masu = new Masu(rawPostion[j], 1);
+
+            // switch (j) {
+            //     case j >
+            // }
 
             // 普通の Masu は-1
-            masu.GoalPlayer = i <= j && j <= 4 ? i : -1;
+            if (j <= 4 && j >= 1) {
+                masu.GoalPlayer = i;
+            } else {
+                masu.GoalPlayer = -1;
+            }
+
             _allMasu.push(masu);
         }
 
@@ -126,10 +219,11 @@ function App() {
         _allMasu[masuBeginIndex + 2]._next = _allMasu[masuBeginIndex + 3];
         _allMasu[masuBeginIndex + 3]._next = _allMasu[masuBeginIndex + 4];
         // 5~12
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 6; i++) {
             _allMasu[masuBeginIndex + i + 5]._next =
                 _allMasu[masuBeginIndex + i + 6];
         }
+
         //_nextForGoal
         _allMasu[masuBeginIndex + 0]._nextForGoal =
             _allMasu[masuBeginIndex + 1];
@@ -139,14 +233,24 @@ function App() {
         player._endMasu = _allMasu[masuBeginIndex + masuCount - 1];
         player._spawnMasu = _allMasu[masuBeginIndex + 5];
     }
+
+    const camera = new THREE.PerspectiveCamera();
+    camera.position.x = 15;
+    // camera.position.z = 6;
+    camera.position.y = 20;
+    camera.zoom = 1;
+
+    console.log(_allMasu);
     return (
+        //
         <div style={{ width: "100vw", height: "100vh" }}>
-            <Canvas>
+            <Canvas camera={camera}>
                 <ambientLight />
                 <pointLight position={[10, 10, 10]} />
-                <Box position={[-1.2, 1, 0]} />
-                <Box position={[1.2, 0, 0]} />
-                <OrbitControls makeDefault />
+
+                <Instances Masus={_allMasu} temp={new THREE.Object3D()} />
+
+                <OrbitControls makeDefault target={[5, 0, 5]} />
             </Canvas>
         </div>
     );
