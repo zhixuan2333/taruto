@@ -77,6 +77,7 @@ class Koma {
     public _endMasu: Masu | null;
     public _spawnMasu: Masu;
     public _owner: number;
+    public Position: THREE.Vector3;
     constructor(
         beginMasu: Masu | null,
         endMasu: Masu | null,
@@ -87,6 +88,28 @@ class Koma {
         this._endMasu = endMasu;
         this._spawnMasu = spawnMasu;
         this._owner = owner;
+
+        this.Position = new THREE.Vector3(
+            this._spawnMasu.Position.x,
+            this._spawnMasu.Position.y + 0.2,
+            this._spawnMasu.Position.z
+        );
+    }
+
+    // y座標は固定
+    public MoveTo(position: THREE.Vector3) {
+        this.Position.x = position.x;
+        this.Position.z = position.z;
+    }
+
+    public MoveToMasu(masu: Masu) {
+        this.Position.x = masu.Position.x;
+        this.Position.z = masu.Position.z;
+    }
+
+    public MoveToSpawnMasu() {
+        this.Position.x = this._spawnMasu.Position.x;
+        this.Position.z = this._spawnMasu.Position.z;
     }
 }
 
@@ -152,9 +175,9 @@ function Komas({ Komas, temp }: KomasProps) {
         // Set positions
         for (let i = 0; i < Komas.length; i++) {
             temp.position.set(
-                Komas[i]._spawnMasu.Position.x,
-                Komas[i]._spawnMasu.Position.y + 0.2,
-                Komas[i]._spawnMasu.Position.z
+                Komas[i].Position.x,
+                Komas[i].Position.y,
+                Komas[i].Position.z
             );
             temp.updateMatrix();
 
@@ -184,7 +207,7 @@ function Komas({ Komas, temp }: KomasProps) {
     }, [Komas, temp]);
     return (
         <instancedMesh ref={ref} args={[undefined, undefined, Komas.length]}>
-            <boxGeometry args={[0.8, 0.1, 0.8]} />
+            <boxGeometry args={[0.4, 0.1, 0.4]} />
             <meshPhongMaterial ref={shaderRef} />
         </instancedMesh>
     );
@@ -331,7 +354,6 @@ function App() {
     console.log(_allMasu);
     console.log(_allKomas);
     return (
-        //
         <div style={{ width: "100vw", height: "100vh" }}>
             <Canvas camera={camera}>
                 <ambientLight />
