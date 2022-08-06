@@ -92,25 +92,28 @@ function Instances({ Masus, temp }: InstancesProps) {
 
             ref.current.setMatrixAt(i, temp.matrix);
 
-            // WIP: Need help
             switch (Masus[i]._type) {
-                case 0:
-                    shaderRef.current.color.set(0x00ff00);
+                case 0: {
+                    ref.current.setColorAt(i, new THREE.Color(0x00ff00));
                     break;
-                case 1:
-                    shaderRef.current.color.set(0xff0000);
+                }
+                case 1: {
+                    ref.current.setColorAt(i, new THREE.Color(0xff0000));
                     break;
-                case 2:
-                    shaderRef.current.color.set(0x0000ff);
+                }
+                case 2: {
+                    ref.current.setColorAt(i, new THREE.Color(0x0000ff));
                     break;
-                case 3:
-                    shaderRef.current.color.set(0xffff00);
+                }
+                case 3: {
+                    ref.current.setColorAt(i, new THREE.Color(0xffff00));
                     break;
+                }
             }
         }
         // Update the instance
         ref.current.instanceMatrix.needsUpdate = true;
-    }, []);
+    }, [Masus, temp]);
     return (
         <instancedMesh ref={ref} args={[undefined, undefined, Masus.length]}>
             <boxGeometry args={[0.8, 0.1, 0.8]} />
@@ -150,22 +153,16 @@ function App() {
     ];
     const playerCount: number = 4;
     const masuCount: number = 18;
-    const BOARD_R: number = 5;
+    // const BOARD_R: number = 5;
     const size: number = 10;
 
-    const indexToheta: number = (2.0 * Math.PI) / masuCount;
-    const thetaForBasePostionOfs: number = Math.PI / 4.0;
+    // const indexToheta: number = (2.0 * Math.PI) / masuCount;
+    // const thetaForBasePostionOfs: number = Math.PI / 4.0;
     for (let i = 0; i < playerCount; i++) {
-        const thetaForBaseRot = i * indexToheta;
-        const thetaForBasePostion = thetaForBasePostionOfs - thetaForBaseRot;
+        // const thetaForBaseRot = i * indexToheta;
+        // const thetaForBasePostion = thetaForBasePostionOfs - thetaForBaseRot;
 
         const player = new Player(new THREE.Object3D(), null, null, null);
-        player._gameObject?.position.set(
-            BOARD_R * Math.cos(thetaForBasePostion),
-            0,
-            BOARD_R * Math.sin(thetaForBasePostion)
-        );
-        player._gameObject?.rotation.set(0, thetaForBaseRot, 0);
 
         const masuBeginIndex = _allMasu.length;
 
@@ -176,7 +173,7 @@ function App() {
                 rawPostion = mapPosition;
                 break;
 
-            case 1:
+            case 1: {
                 rawPostion = mapPosition.map((v) => {
                     const v2 = v.clone();
                     v2.x = v.z;
@@ -186,7 +183,8 @@ function App() {
                     return v2;
                 });
                 break;
-            case 2:
+            }
+            case 2: {
                 rawPostion = mapPosition.map((v) => {
                     const v2 = v.clone();
                     v2.x = v.z;
@@ -196,8 +194,9 @@ function App() {
                     return v2;
                 });
                 break;
+            }
 
-            case 3:
+            case 3: {
                 rawPostion = mapPosition.map((v) => {
                     const v2 = v.clone();
                     v2.x *= -1;
@@ -207,12 +206,13 @@ function App() {
                     return v2;
                 });
                 break;
+            }
         }
         for (let j = 0; j < masuCount; j++) {
             const masu = new Masu(rawPostion[j], 1);
 
             // Masu type
-            if (j == 0) {
+            if (j === 0) {
                 masu._type = 2;
             } else if (j <= 4) {
                 masu._type = 1;
@@ -269,7 +269,7 @@ function App() {
 
                 <Instances Masus={_allMasu} temp={new THREE.Object3D()} />
 
-                <OrbitControls makeDefault target={[5, 0, 5]} />
+                <OrbitControls makeDefault={true} target={[5, 0, 5]} />
             </Canvas>
         </div>
     );
