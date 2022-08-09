@@ -31,7 +31,9 @@ class Masu {
     //     new THREE.MeshBasicMaterial({ color: 0x00ff00 })
     // );
 
+    // For Debug
     public id: number;
+
     public Position: THREE.Vector3;
     public GoalPlayer: number;
 
@@ -209,7 +211,6 @@ function Komas({ temp }: KomasProps) {
     }, [Komas, temp]);
 
     let masu = allMasu[0];
-    let tmp = new THREE.Object3D();
     useFrame(() => {
         Komas[5].MoveToMasu(masu);
         temp.position.set(
