@@ -41,9 +41,9 @@ class Masu {
     public _type: number = 0;
 
     // 連結管理
-    public _prev: Masu | null;
-    public _next: Masu | null;
-    public _nextForGoal: Masu | null;
+    public _prev?: Masu;
+    public _next?: Masu;
+    public _nextForGoal?: Masu;
     constructor(
         // gameObject: THREE.Mesh,
         id: number,
@@ -53,22 +53,19 @@ class Masu {
         this.id = id;
         this.Position = position;
         this.GoalPlayer = goalPlayer;
-        this._prev = null;
-        this._next = null;
-        this._nextForGoal = null;
     }
 }
 
 class Player {
-    public _gameObject: THREE.Object3D | null;
-    public _beginMasu: Masu | null;
-    public _endMasu: Masu | null;
-    public _spawnMasu: Masu | null;
+    public _gameObject?: THREE.Object3D;
+    public _beginMasu?: Masu;
+    public _endMasu?: Masu;
+    public _spawnMasu?: Masu;
     constructor(
-        _gameObject: THREE.Object3D | null,
-        beginMasu: Masu | null,
-        endMasu: Masu | null,
-        spawnMasu: Masu | null
+        _gameObject?: THREE.Object3D,
+        beginMasu?: Masu,
+        endMasu?: Masu,
+        spawnMasu?: Masu
     ) {
         this._gameObject = _gameObject;
         this._beginMasu = beginMasu;
@@ -78,16 +75,16 @@ class Player {
 }
 
 class Koma {
-    public _beginMasu: Masu | null;
-    public _endMasu: Masu | null;
+    public _beginMasu?: Masu;
+    public _endMasu?: Masu;
     public _spawnMasu: Masu;
     public _owner: number;
     public Position: THREE.Vector3;
     constructor(
-        beginMasu: Masu | null,
-        endMasu: Masu | null,
         spawnMasu: Masu,
-        owner: number
+        owner: number,
+        beginMasu?: Masu,
+        endMasu?: Masu
     ) {
         this._beginMasu = beginMasu;
         this._endMasu = endMasu;
@@ -118,11 +115,11 @@ class Koma {
     }
 }
 
-type MapsProps = {
+type Props = {
     temp: THREE.Object3D;
 };
 
-function Maps({ temp }: MapsProps) {
+function Maps({ temp }: Props) {
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
     useEffect(() => {
@@ -167,11 +164,7 @@ function Maps({ temp }: MapsProps) {
     );
 }
 
-type KomasProps = {
-    temp: THREE.Object3D;
-};
-
-function Komas({ temp }: KomasProps) {
+function Komas({ temp }: Props) {
     let Komas: Koma[] = allKoma;
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
@@ -210,8 +203,11 @@ function Komas({ temp }: KomasProps) {
         ref.current.instanceMatrix.needsUpdate = true;
     }, [Komas, temp]);
 
-    let masu = allMasu[0];
+    let masu: Masu = allMasu[33];
+    let time: number = 0;
     useFrame(() => {
+        time++;
+        if (time % 10 !== 0) return;
         Komas[5].MoveToMasu(masu);
         temp.position.set(
             Komas[5].Position.x,
@@ -223,7 +219,19 @@ function Komas({ temp }: KomasProps) {
         ref.current.setMatrixAt(5, temp.matrix);
         ref.current.instanceMatrix.needsUpdate = true;
 
-        masu = masu._next === null ? allMasu[0] : masu._next;
+        if (typeof masu._next !== "undefined") {
+            masu = masu._next;
+            return;
+        }
+
+        // if (
+        //     typeof masu._nextForGoal !== "undefined" &&
+        //     masu._nextForGoal.GoalPlayer === 1
+        // ) {
+        //     masu = masu._nextForGoal;
+        // } else if (typeof masu._next !== "undefined") {
+        //     masu = masu._next;
+        // }
     });
 
     return (
@@ -242,7 +250,7 @@ function App() {
     useMemo(() => {
         let _allMasu: Masu[] = [];
         let _allKoma: Koma[] = [];
-        const mapPosition: THREE.Vector3[] = [
+        let mapPosition: THREE.Vector3[] = [
             // 左下を0,0にする
             // turn point
             new THREE.Vector3(5, 0, 0),
@@ -271,7 +279,7 @@ function App() {
         const masuCount: number = 18;
         const size: number = 10;
         for (let i = 0; i < playerCount; i++) {
-            const player = new Player(new THREE.Object3D(), null, null, null);
+            const player = new Player(new THREE.Object3D());
 
             const masuBeginIndex = _allMasu.length;
 
@@ -293,13 +301,14 @@ function App() {
                     });
                     break;
                 }
+
                 case 2: {
                     rawPostion = mapPosition.map((v) => {
                         const v2 = v.clone();
-                        v2.x = v.z;
-                        v2.z = v.x;
                         v2.x *= -1;
+                        v2.z *= -1;
                         v2.x += size;
+                        v2.z += size;
                         return v2;
                     });
                     break;
@@ -308,10 +317,10 @@ function App() {
                 case 3: {
                     rawPostion = mapPosition.map((v) => {
                         const v2 = v.clone();
+                        v2.x = v.z;
+                        v2.z = v.x;
                         v2.x *= -1;
-                        v2.z *= -1;
                         v2.x += size;
-                        v2.z += size;
                         return v2;
                     });
                     break;
@@ -333,7 +342,10 @@ function App() {
 
                 // 普通の Masu は-1
                 if (j <= 4 && j >= 1) {
-                    masu.GoalPlayer = i;
+                    masu.GoalPlayer = i - 1;
+                    if (i === 0) {
+                        masu.GoalPlayer = 3;
+                    }
                 } else {
                     masu.GoalPlayer = -1;
                 }
@@ -351,6 +363,11 @@ function App() {
                 _allMasu[masuBeginIndex + i + 5]._next =
                     _allMasu[masuBeginIndex + i + 6];
             }
+            // 14~17
+            for (let i = 0; i < 4; i++) {
+                _allMasu[masuBeginIndex + i + 14]._next =
+                    _allMasu[masuBeginIndex + 13];
+            }
 
             //_nextForGoal
             _allMasu[masuBeginIndex + 0]._nextForGoal =
@@ -358,18 +375,23 @@ function App() {
 
             // Komas
             for (let k = 0; k < 4; k++) {
-                _allKoma.push(
-                    new Koma(null, null, _allMasu[masuBeginIndex + 14 + k], i)
-                );
+                _allKoma.push(new Koma(_allMasu[masuBeginIndex + 14 + k], i));
             }
+
             // start, end, spawn Masu for player
             player._beginMasu = _allMasu[masuBeginIndex];
             player._endMasu = _allMasu[masuBeginIndex + masuCount - 1];
             player._spawnMasu = _allMasu[masuBeginIndex + 5];
         }
         for (let i = 1; i <= 4; i++) {
-            _allMasu[i * 18 - 4]._next = _allMasu[i * 18];
+            _allMasu[i * 18 - 4 - 1]._next = _allMasu[i * 18];
         }
+        _allMasu[67]._next = _allMasu[0];
+
+        for (let i = 0; i < 18; i++) {
+            _allMasu[i]._type = 0;
+        }
+
         allKoma = _allKoma;
         allMasu = _allMasu;
     }, []);
