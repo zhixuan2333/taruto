@@ -152,11 +152,9 @@ function Maps({ temp, allMasu }: MapProps) {
 
 type KomaProps = {
     temp: THREE.Object3D;
-    allMasu: Masu[];
     allKoma: Koma[];
-    setAllKoma: React.Dispatch<React.SetStateAction<Koma[]>>;
 };
-function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
+function Komas({ temp, allKoma }: KomaProps) {
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
     useEffect(() => {
@@ -194,47 +192,6 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
         // Update the instance
         ref.current.instanceMatrix.needsUpdate = true;
     }, [allKoma, temp]);
-
-    useEffect(() => {
-        console.log("Komau");
-    }, [allKoma]);
-
-    let masu: Masu = allMasu[33];
-    let time: number = 0;
-    let temp2 = temp.clone();
-    useFrame(() => {
-        time++;
-        if (time % 10 !== 0) return;
-        setAllKoma(() => {
-            allKoma[5].MoveToMasu(masu);
-            return allKoma;
-        });
-        temp2.position.set(
-            allKoma[5].Position.x,
-            allKoma[5].Position.y,
-            allKoma[5].Position.z
-        );
-        temp2.updateMatrix();
-        console.log(allKoma[5].Position);
-
-        ref.current.setMatrixAt(5, temp2.matrix);
-
-        ref.current.instanceMatrix.needsUpdate = true;
-
-        if (typeof masu._next !== "undefined") {
-            masu = masu._next;
-            return;
-        }
-
-        // if (
-        //     typeof masu._nextForGoal !== "undefined" &&
-        //     masu._nextForGoal.GoalPlayer === 1
-        // ) {
-        //     masu = masu._nextForGoal;
-        // } else if (typeof masu._next !== "undefined") {
-        //     masu = masu._next;
-        // }
-    });
 
     return (
         <instancedMesh ref={ref} args={[undefined, undefined, allKoma.length]}>
@@ -413,12 +370,7 @@ function App() {
                 <pointLight position={[10, 10, 10]} />
 
                 <Maps temp={new THREE.Object3D()} allMasu={allMasu} />
-                <Komas
-                    temp={new THREE.Object3D()}
-                    allMasu={allMasu}
-                    allKoma={allKoma}
-                    setAllKoma={setAllKoma}
-                />
+                <Komas temp={new THREE.Object3D()} allKoma={allKoma} />
 
                 <OrbitControls makeDefault={true} target={[5, 0, 5]} />
             </Canvas>
