@@ -204,20 +204,20 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
     let temp2 = temp.clone();
     useFrame(() => {
         time++;
-        if (time % 10 !== 0) return;
+        if (time % 100 !== 0) return;
         setAllKoma(() => {
-            allKoma[0].MoveToMasu(masu);
+            allKoma[5].MoveToMasu(masu);
             return allKoma;
         });
         temp2.position.set(
-            allKoma[0].Position.x,
-            allKoma[0].Position.y,
-            allKoma[0].Position.z
+            allKoma[5].Position.x,
+            allKoma[5].Position.y,
+            allKoma[5].Position.z
         );
         temp2.updateMatrix();
-        console.log(allKoma[0].Position);
+        console.log(allKoma[5].Position);
 
-        ref.current.setMatrixAt(0, temp2.matrix);
+        ref.current.setMatrixAt(5, temp2.matrix);
 
         ref.current.instanceMatrix.needsUpdate = true;
 
@@ -355,15 +355,61 @@ function App() {
             }
 
             //連結管理
-            _allMasu[masuBeginIndex + 0]._next = _allMasu[masuBeginIndex + 5];
-            _allMasu[masuBeginIndex + 1]._next = _allMasu[masuBeginIndex + 2];
-            _allMasu[masuBeginIndex + 2]._next = _allMasu[masuBeginIndex + 3];
-            _allMasu[masuBeginIndex + 3]._next = _allMasu[masuBeginIndex + 4];
-            // 5~12
-            for (let i = 0; i < 9; i++) {
-                _allMasu[masuBeginIndex + i + 5]._next =
-                    _allMasu[masuBeginIndex + i + 6];
+            _allMasu[masuBeginIndex + 9]._next = _allMasu[masuBeginIndex + 4];
+            _allMasu[masuBeginIndex + 10]._next = _allMasu[masuBeginIndex + 3];
+            _allMasu[masuBeginIndex + 11]._next = _allMasu[masuBeginIndex + 2];
+            _allMasu[masuBeginIndex + 12]._next = _allMasu[masuBeginIndex + 5];
+            for (let i = 0; i < 5; i++) {
+                _allMasu[masuBeginIndex + 8 - i]._next =
+                    _allMasu[masuBeginIndex + 7 + i];
             }
+            for (let i = 0; i < 4; i++) {
+                _allMasu[masuBeginIndex + 3 - i]._next =
+                    _allMasu[masuBeginIndex + 11 + i];
+            }
+            /*
+            0 14
+            1 13
+            2 12
+            3 11
+
+            5 10
+            6 9
+            7 8
+            8 7
+            9 6
+            10 4
+            11 3
+            12 2
+            13 5
+            */
+            /*
+            0 5
+            1 2
+            2 3
+            3 4
+
+            5 6
+            6 7
+            7 8
+            8 9
+            9 10
+            10 11
+            11 12
+            12 13
+            13 14
+
+            14 13
+            15 13
+            16 13
+            17 13
+            */
+
+            // 5~13
+            // for (let i = 0; i < 9; i++) {
+            //     _allMasu[masuBeginIndex + i + 5]._next =
+            //         _allMasu[masuBeginIndex + i + 6];
+            // }
             // 14~17
             for (let i = 0; i < 4; i++) {
                 _allMasu[masuBeginIndex + i + 14]._next =
@@ -405,6 +451,10 @@ function App() {
 
     console.log(allMasu);
     console.log(allKoma);
+    allMasu.forEach((v) => {
+        console.log( "id: " + v.id + " positon: " + v.Position.x + " " + v.Position.y + " " + v.Position.z);
+    } )
+
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
             <Canvas camera={camera}>
@@ -420,6 +470,8 @@ function App() {
                 />
 
                 <OrbitControls makeDefault={true} target={[5, 0, 5]} />
+                <axesHelper />
+
             </Canvas>
         </div>
     );
