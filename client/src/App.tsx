@@ -204,7 +204,7 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
     let temp2 = temp.clone();
     useFrame(() => {
         time++;
-        if (time % 100 !== 0) return;
+        if (time % 10 !== 0) return;
         setAllKoma(() => {
             allKoma[5].MoveToMasu(masu);
             return allKoma;
@@ -331,13 +331,13 @@ function App() {
                 const masu = new Masu(masuBeginIndex + j, rawPostion[j], 1);
 
                 // Masu type
-                if (j === 0) {
+                if (j === 0) {//turn
                     masu._type = 2;
-                } else if (j <= 4) {
+                } else if (j <= 4) {//goal
                     masu._type = 1;
-                } else if (j <= 13) {
+                } else if (j <= 13) {//normal
                     masu._type = 0;
-                } else if (j <= 17) {
+                } else if (j <= 17) {//spawn
                     masu._type = 3;
                 }
 
@@ -355,61 +355,12 @@ function App() {
             }
 
             //連結管理
-            _allMasu[masuBeginIndex + 9]._next = _allMasu[masuBeginIndex + 4];
-            _allMasu[masuBeginIndex + 10]._next = _allMasu[masuBeginIndex + 3];
-            _allMasu[masuBeginIndex + 11]._next = _allMasu[masuBeginIndex + 2];
-            _allMasu[masuBeginIndex + 12]._next = _allMasu[masuBeginIndex + 5];
-            for (let i = 0; i < 5; i++) {
-                _allMasu[masuBeginIndex + 8 - i]._next =
-                    _allMasu[masuBeginIndex + 7 + i];
+            for (let i = 0; i < 9; i++) {
+                _allMasu[masuBeginIndex + 13 - i]._next =
+                    _allMasu[masuBeginIndex + 12 - i];
             }
-            for (let i = 0; i < 4; i++) {
-                _allMasu[masuBeginIndex + 3 - i]._next =
-                    _allMasu[masuBeginIndex + 11 + i];
-            }
-            /*
-            0 14
-            1 13
-            2 12
-            3 11
-
-            5 10
-            6 9
-            7 8
-            8 7
-            9 6
-            10 4
-            11 3
-            12 2
-            13 5
-            */
-            /*
-            0 5
-            1 2
-            2 3
-            3 4
-
-            5 6
-            6 7
-            7 8
-            8 9
-            9 10
-            10 11
-            11 12
-            12 13
-            13 14
-
-            14 13
-            15 13
-            16 13
-            17 13
-            */
-
-            // 5~13
-            // for (let i = 0; i < 9; i++) {
-            //     _allMasu[masuBeginIndex + i + 5]._next =
-            //         _allMasu[masuBeginIndex + i + 6];
-            // }
+            _allMasu[masuBeginIndex + 5]._next = _allMasu[masuBeginIndex];
+            console.log(_allMasu);
             // 14~17
             for (let i = 0; i < 4; i++) {
                 _allMasu[masuBeginIndex + i + 14]._next =
@@ -430,10 +381,10 @@ function App() {
             player._endMasu = _allMasu[masuBeginIndex + masuCount - 1];
             player._spawnMasu = _allMasu[masuBeginIndex + 5];
         }
-        for (let i = 1; i <= 4; i++) {
-            _allMasu[i * 18 - 4 - 1]._next = _allMasu[i * 18];
+        for (let i = 1; i <= 3; i++) {
+            _allMasu[i * 18]._next = _allMasu[i * 18 - 4 - 1];
         }
-        _allMasu[67]._next = _allMasu[0];
+        _allMasu[0]._next = _allMasu[67];
 
         // for (let i = 0; i < 18; i++) {
         //     _allMasu[i]._type = 0;
