@@ -338,6 +338,10 @@ function App() {
                     _allMasu[masuBeginIndex + 12 - i];
             }
             _allMasu[masuBeginIndex + 5]._next = _allMasu[masuBeginIndex];
+            for (let i = 0; i < 4; i++) {
+                _allMasu[masuBeginIndex + 1 + i]._next =
+                    _allMasu[masuBeginIndex + 2 + i];
+            }
             // 14~17
             for (let i = 0; i < 4; i++) {
                 _allMasu[masuBeginIndex + i + 14]._next =
