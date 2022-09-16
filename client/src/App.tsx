@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -139,7 +139,6 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
     useEffect(() => {
-        console.log("Koma Update");
         // Set positions
         for (let i = 0; i < allKoma.length; i++) {
             temp.position.set(
@@ -174,41 +173,40 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
         ref.current.instanceMatrix.needsUpdate = true;
     }, [allKoma, temp]);
 
-    useEffect(() => {
-        console.log("Komau");
-    }, [allKoma]);
 
-    let masu: Masu = allKoma[5]._spawnMasu
-    let time: number = 0;
-    let temp2 = temp.clone();
-    useFrame(() => {
-        time++;
-        if (time % 10 !== 0) return;
-        setAllKoma(() => {
-            allKoma[5].MoveToMasu(masu);
-            return allKoma;
-        });
-        temp2.position.set(
-            allKoma[5].Position.x,
-            allKoma[5].Position.y,
-            allKoma[5].Position.z
-        );
-        temp2.updateMatrix();
-        console.log(allKoma[5].Position);
+    // # For Debug
+    // let id: number = 0;
+    // let masu: Masu = allKoma[id]._spawnMasu
+    // let time: number = 0;
+    // let temp2 = temp.clone();
+    // useFrame(() => {
+    //     time++;
+    //     if (time % 10 !== 0) return;
+    //     setAllKoma(() => {
+    //         allKoma[id].MoveToMasu(masu);
+    //         return allKoma;
+    //     });
+    //     temp2.position.set(
+    //         allKoma[id].Position.x,
+    //         allKoma[id].Position.y,
+    //         allKoma[id].Position.z
+    //     );
+    //     temp2.updateMatrix();
+    //     console.log(allKoma[id].Position);
 
-        ref.current.setMatrixAt(5, temp2.matrix);
+    //     ref.current.setMatrixAt(id, temp2.matrix);
 
-        ref.current.instanceMatrix.needsUpdate = true;
+    //     ref.current.instanceMatrix.needsUpdate = true;
 
-        if (
-            typeof masu._nextForGoal !== "undefined" &&
-            masu._nextForGoal.GoalPlayer === 1
-        ) {
-            masu = masu._nextForGoal;
-        } else if (typeof masu._next !== "undefined") {
-            masu = masu._next;
-        }
-    });
+    //     if (
+    //         typeof masu._nextForGoal !== "undefined" &&
+    //         masu._nextForGoal.GoalPlayer === allKoma[id]._owner
+    //     ) {
+    //         masu = masu._nextForGoal;
+    //     } else if (typeof masu._next !== "undefined") {
+    //         masu = masu._next;
+    //     }
+    // });
     return (
         <instancedMesh ref={ref} args={[undefined, undefined, allKoma.length]}>
             <boxGeometry args={[0.4, 0.1, 0.4]} />
@@ -216,8 +214,6 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
         </instancedMesh>
     );
 }
-
-// const socket = io("127.0.0.1:8080");
 
 function App() {
     const [allMasu, setAllMasu] = useState<Masu[]>([]);
@@ -306,16 +302,16 @@ function App() {
 
                 // Masu type
                 if (j === 0) {
-                    //turn
+                    // turn
                     masu._type = 2;
                 } else if (j <= 4) {
-                    //goal
+                    // goal
                     masu._type = 1;
                 } else if (j <= 13) {
-                    //normal
+                    // normal
                     masu._type = 0;
                 } else if (j <= 17) {
-                    //spawn
+                    // spawn
                     masu._type = 3;
                 }
 
@@ -332,7 +328,7 @@ function App() {
                 _allMasu.push(masu);
             }
 
-            //連結管理
+            // 連結管理
             for (let i = 0; i < 9; i++) {
                 _allMasu[masuBeginIndex + 13 - i]._next =
                     _allMasu[masuBeginIndex + 12 - i];
@@ -348,7 +344,7 @@ function App() {
                     _allMasu[masuBeginIndex + 13];
             }
 
-            //_nextForGoal
+            // _nextForGoal
             _allMasu[masuBeginIndex + 0]._nextForGoal =
                 _allMasu[masuBeginIndex + 1];
 
@@ -373,7 +369,6 @@ function App() {
 
     const camera = new THREE.PerspectiveCamera();
     camera.position.x = 15;
-    // camera.position.z = 6;
     camera.position.y = 10;
     camera.zoom = 1;
 
