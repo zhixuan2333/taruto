@@ -7,28 +7,7 @@ import * as THREE from "three";
 
 const socket = io("http://localhost:3000");
 
-function Box(props: JSX.IntrinsicElements["mesh"]) {
-    const ref = useRef<THREE.Mesh>(null!);
-    const [hovered, hover] = useState(false);
-    const [clicked, click] = useState(false);
-    useFrame((state, delta) => (ref.current.rotation.x += 0.01));
-    return (
-        <mesh
-            {...props}
-            ref={ref}
-            scale={clicked ? 1.5 : 1}
-            onClick={(event) => click(!clicked)}
-            onPointerOver={(event) => hover(true)}
-            onPointerOut={(event) => hover(false)}
-        >
-            <boxGeometry args={[2, 2, 1]} />
-            <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
-        </mesh>
-    );
-}
-
 class Masu {
-    // For Debug
     public id: number;
 
     public Position: THREE.Vector3;
@@ -383,10 +362,6 @@ function App() {
             _allMasu[i * 18]._next = _allMasu[i * 18 - 4 - 1];
         }
         _allMasu[0]._next = _allMasu[67];
-
-        // for (let i = 0; i < 18; i++) {
-        //     _allMasu[i]._type = 0;
-        // }
 
         setAllKoma(_allKoma);
         setAllMasu(_allMasu);
