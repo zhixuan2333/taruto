@@ -178,7 +178,7 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
         console.log("Komau");
     }, [allKoma]);
 
-    let masu: Masu = allMasu[0];
+    let masu: Masu = allKoma[5]._spawnMasu
     let time: number = 0;
     let temp2 = temp.clone();
     useFrame(() => {
@@ -382,13 +382,13 @@ function App() {
     allMasu.forEach((v) => {
         console.log(
             "id: " +
-                v.id +
-                " positon: " +
-                v.Position.x +
-                " " +
-                v.Position.y +
-                " " +
-                v.Position.z
+            v.id +
+            " positon: " +
+            v.Position.x +
+            " " +
+            v.Position.y +
+            " " +
+            v.Position.z
         );
     });
 
