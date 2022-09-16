@@ -221,19 +221,14 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
 
         ref.current.instanceMatrix.needsUpdate = true;
 
-        if (typeof masu._next !== "undefined") {
+        if (
+            typeof masu._nextForGoal !== "undefined" &&
+            masu._nextForGoal.GoalPlayer === 1
+        ) {
+            masu = masu._nextForGoal;
+        } else if (typeof masu._next !== "undefined") {
             masu = masu._next;
-            return;
         }
-
-        // if (
-        //     typeof masu._nextForGoal !== "undefined" &&
-        //     masu._nextForGoal.GoalPlayer === 1
-        // ) {
-        //     masu = masu._nextForGoal;
-        // } else if (typeof masu._next !== "undefined") {
-        //     masu = masu._next;
-        // }
     });
     return (
         <instancedMesh ref={ref} args={[undefined, undefined, allKoma.length]}>
@@ -331,13 +326,17 @@ function App() {
                 const masu = new Masu(masuBeginIndex + j, rawPostion[j], 1);
 
                 // Masu type
-                if (j === 0) {//turn
+                if (j === 0) {
+                    //turn
                     masu._type = 2;
-                } else if (j <= 4) {//goal
+                } else if (j <= 4) {
+                    //goal
                     masu._type = 1;
-                } else if (j <= 13) {//normal
+                } else if (j <= 13) {
+                    //normal
                     masu._type = 0;
-                } else if (j <= 17) {//spawn
+                } else if (j <= 17) {
+                    //spawn
                     masu._type = 3;
                 }
 
@@ -360,7 +359,6 @@ function App() {
                     _allMasu[masuBeginIndex + 12 - i];
             }
             _allMasu[masuBeginIndex + 5]._next = _allMasu[masuBeginIndex];
-            console.log(_allMasu);
             // 14~17
             for (let i = 0; i < 4; i++) {
                 _allMasu[masuBeginIndex + i + 14]._next =
@@ -403,8 +401,17 @@ function App() {
     console.log(allMasu);
     console.log(allKoma);
     allMasu.forEach((v) => {
-        console.log( "id: " + v.id + " positon: " + v.Position.x + " " + v.Position.y + " " + v.Position.z);
-    } )
+        console.log(
+            "id: " +
+                v.id +
+                " positon: " +
+                v.Position.x +
+                " " +
+                v.Position.y +
+                " " +
+                v.Position.z
+        );
+    });
 
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
@@ -422,7 +429,6 @@ function App() {
 
                 <OrbitControls makeDefault={true} target={[5, 0, 5]} />
                 <axesHelper />
-
             </Canvas>
         </div>
     );
