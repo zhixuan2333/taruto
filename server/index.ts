@@ -18,6 +18,7 @@ type Room = {
     name: string;
     users: User[];
     koma: Koma[];
+    nowUser: User | null;
 };
 
 type User = {
@@ -44,23 +45,50 @@ rooms.push({
     name: "room1",
     users: [],
     koma: [],
+    nowUser: null,
 });
 
 io.on("connection", (socket) => {
     // ...
     console.log("a user connected");
-    socket.join("room1");
 
-    rooms[0].users.push({
-        id: 0,
-        socketID: socket.id,
-        name: "user1",
+    // for Debug
+    socket.rooms.forEach((room) => {
+        console.log(room);
     });
+
+    // if user more than 4, disconnect
+    if (io.in("room1").allSockets.length >= 4) {
+        console.log("room1 is full");
+        socket.emit("message", "the room is full");
+        socket.disconnect();
+        return;
+    }
+
+    socket.join("room1");
+    rooms[0] = {
+        ...rooms[0],
+        users: [
+            ...rooms[0].users,
+            {
+                id: rooms[0].users.length,
+                socketID: socket.id,
+                name: "user " + rooms[0].users.length,
+            },
+        ],
+        nowUser:
+            rooms[0].nowUser == null ? rooms[0].users[0] : rooms[0].nowUser,
+    };
     socket.emit("message", "Hello there!");
-    io.to("room1").emit("message", "Hello everyone!");
+    io.to("room1").emit("update", rooms[0]);
 });
 
-io.on("disconnect", () => {
+io.on("disconnect", (socket) => {
+    socket.leave("room1");
+    delete rooms[0].users[socket.id];
+    if (rooms[0].nowUser !== null && rooms[0].nowUser.socketID == socket.id) {
+        rooms[0].nowUser = null;
+    }
     // ...
     console.log("user disconnected");
 });
