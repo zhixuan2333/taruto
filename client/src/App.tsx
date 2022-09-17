@@ -5,7 +5,6 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
-const socket = io("http://localhost:3000");
 
 class Masu {
     public id: number;
@@ -215,6 +214,9 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
     );
 }
 
+
+const socket = io("ws://localhost:8080");
+
 function App() {
     const [allMasu, setAllMasu] = useState<Masu[]>([]);
     const [allKoma, setAllKoma] = useState<Koma[]>([]);
@@ -365,6 +367,22 @@ function App() {
 
         setAllKoma(_allKoma);
         setAllMasu(_allMasu);
+    }, []);
+
+    useEffect(() => {
+        socket.on('connect', () => {
+            console.log('connected');
+
+        });
+
+        socket.on('disconnect', () => {
+            console.log('disconnected');
+        });
+
+        socket.on('message', (data: any) => {
+            console.log(data);
+        })
+
     }, []);
 
     const camera = new THREE.PerspectiveCamera();
