@@ -13,22 +13,22 @@ const io = new Server(8080, {
 
 console.log("Server started on port 8080");
 
-type Room = {
+type ioGame = {
     id: string;
     name: string;
-    users: User[];
-    koma: Koma[];
-    nowUser: User | null;
+    users: ioPlayer[];
+    koma: ioKoma[];
+    nowUser: ioPlayer | null;
 };
 
-type User = {
+type ioPlayer = {
     // 0~3
     id: number;
     socketID: string;
     name: string;
 };
 
-type Koma = {
+type ioKoma = {
     // 0~3
     owner: number;
     // 0~15
@@ -38,7 +38,7 @@ type Koma = {
     isGoal: boolean;
 };
 
-const rooms: Room[] = [];
+const rooms: ioGame[] = [];
 
 rooms.push({
     id: "1",
@@ -58,10 +58,10 @@ io.on("connection", (socket) => {
     });
 
     // if user more than 4, disconnect
-    if (io.in("room1").allSockets.length >= 4) {
-        console.log("room1 is full");
-        socket.emit("message", "the room is full");
-        socket.disconnect();
+    if (socket.rooms.size > 4) {
+        return;
+    }
+    if (rooms[0].users.length > 4) {
         return;
     }
 

@@ -217,6 +217,30 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
 
 const socket = io("ws://localhost:8080");
 
+type ioGame = {
+    id: string;
+    name: string;
+    users: ioPlayer[];
+    koma: ioKoma[];
+    nowUser: ioPlayer | null;
+};
+
+type ioPlayer = {
+    // 0~3
+    id: number;
+    socketID: string;
+    name: string;
+};
+
+type ioKoma = {
+    // 0~3
+    owner: number;
+    // 0~15
+    id: number;
+    // the Masu id 0~71
+    position: number;
+    isGoal: boolean;
+};
 function App() {
     const [allMasu, setAllMasu] = useState<Masu[]>([]);
     const [allKoma, setAllKoma] = useState<Koma[]>([]);
@@ -382,6 +406,11 @@ function App() {
         socket.on('message', (data: any) => {
             console.log(data);
         })
+
+        socket.on('update', (data: ioGame) => {
+            console.log(data);
+        })
+
 
     }, []);
 
