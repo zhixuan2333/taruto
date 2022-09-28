@@ -1,22 +1,24 @@
 {
-    "name": "taruto-server",
-    "version": "1.0.0",
-    "main": "index.ts",
-    "repository": "https://github.com/zhixuan2333/taruto",
-    "author": "https://github.com/zhixuan2333",
-    "license": "MIT",
-    "private": true,
-    "scripts": {
-        "start": "npx ts-node index.ts"
-    },
-    "devDependencies": {
-        "typescript": "^4.7.4"
-    },
-    "dependencies": {
-        "socket.io": "^4.5.1"
-    },
-    "optionalDependencies": {
-        "bufferutil": "^4.0.6",
-        "utf-8-validate": "^5.0.9"
-    }
+  "name": "taruto-server",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "repository": "https://github.com/zhixuan2333/taruto",
+  "author": "https://github.com/zhixuan2333",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "npx ts-node index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@types/three": "^0.144.0",
+    "socket.io": "^4.5.1",
+    "three": "^0.144.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.6",
+    "utf-8-validate": "^5.0.9"
+  }
 }
