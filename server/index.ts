@@ -240,7 +240,6 @@ Games.push({
 });
 
 io.on("connection", (socket) => {
-    // ...
     console.log("a user connected");
 
     // for Debug
@@ -306,6 +305,5 @@ io.on("disconnect", (socket) => {
     if (Games[0].nowUser !== null && Games[0].nowUser.socketID == socket.id) {
         Games[0].nowUser = null;
     }
-    // ...
     console.log("user disconnected");
 });
