@@ -38,7 +38,7 @@ type Koma = {
     _beginMasu: number | null;
     _endMasu: number | null;
     _spawnMasu: number;
-    Position: THREE.Vector3;
+    Position: number;
     isGoal: boolean;
 };
 
@@ -50,7 +50,6 @@ type Game = {
     koma: Koma[];
     nowUser: Player | null;
 };
-
 
 type MapProps = {
     temp: THREE.Object3D;
@@ -115,9 +114,9 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
         // Set positions
         for (let i = 0; i < allKoma.length; i++) {
             temp.position.set(
-                allKoma[i].Position.x,
-                allKoma[i].Position.y,
-                allKoma[i].Position.z
+                allMasu[allKoma[i].Position].Position.x,
+                0.2,
+                allMasu[allKoma[i].Position].Position.z
             );
             temp.updateMatrix();
 

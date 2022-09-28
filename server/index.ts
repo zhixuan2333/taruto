@@ -47,7 +47,7 @@ type Koma = {
     _beginMasu: number | null;
     _endMasu: number | null;
     _spawnMasu: number;
-    Position: THREE.Vector3;
+    Position: number;
     isGoal: boolean;
 };
 
@@ -210,11 +210,7 @@ function setup(): setupProps {
                 _spawnMasu: masuBeginIndex + 14 + k,
                 _beginMasu: null,
                 _endMasu: null,
-                Position: new THREE.Vector3(
-                    Masus[masuBeginIndex + 14 + k].Position.x,
-                    Masus[masuBeginIndex + 14 + k].Position.y + 0.2,
-                    Masus[masuBeginIndex + 14 + k].Position.z
-                ),
+                Position: masuBeginIndex + 14 + k,
             });
         }
 
@@ -277,6 +273,13 @@ io.on("connection", (socket) => {
         nowUser:
             Games[0].nowUser == null ? Games[0].players[0] : Games[0].nowUser,
     };
+    Games[0].koma.forEach((koma) => {
+        if (koma.id === 4) {
+            if (Games[0].masus[koma.Position]._next !== null) {
+                koma.Position = Games[0].masus[koma.Position]._next!;
+            }
+        }
+    });
     socket.emit("message", "Hello there!");
     io.to("room1").emit("update", Games[0]);
 
