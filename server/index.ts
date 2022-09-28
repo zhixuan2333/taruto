@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import * as THREE from "three";
 
 const io = new Server(8080, {
     /* options */
@@ -13,57 +14,232 @@ const io = new Server(8080, {
 
 console.log("Server started on port 8080");
 
-type ioGame = {
-    id: string;
-    name: string;
-    users: ioPlayer[];
-    koma: ioKoma[];
-    nowUser: ioPlayer | null;
+type Masu = {
+    id: number;
+
+    Position: THREE.Vector3;
+    GoalPlayer: number;
+
+    // 0: normal, 1: goal, 2: turn 3: spawn
+    _type: number;
+
+    // 連結管理
+    _prev: number | null;
+    _next: number | null;
+    _nextForGoal: number | null;
 };
 
-type ioPlayer = {
+type Player = {
     // 0~3
     id: number;
     socketID: string;
     name: string;
+    // _beginMasu: Masu | null;
+    // _endMasu: Masu | null;
+    // _spawnMasu: Masu | null;
 };
 
-type ioKoma = {
+type Koma = {
     // 0~3
     owner: number;
     // 0~15
     id: number;
-    // the Masu id 0~71
-    position: number;
+    _beginMasu: number | null;
+    _endMasu: number | null;
+    _spawnMasu: number;
+    Position: THREE.Vector3;
     isGoal: boolean;
 };
 
-const DefaultKoma: ioKoma[] = [
-    { owner: 0, id: 0, position: 14, isGoal: false },
-    { owner: 0, id: 1, position: 15, isGoal: false },
-    { owner: 0, id: 2, position: 16, isGoal: false },
-    { owner: 0, id: 3, position: 17, isGoal: false },
-    { owner: 1, id: 4, position: 32, isGoal: false },
-    { owner: 1, id: 5, position: 33, isGoal: false },
-    { owner: 1, id: 6, position: 34, isGoal: false },
-    { owner: 1, id: 7, position: 35, isGoal: false },
-    { owner: 2, id: 8, position: 50, isGoal: false },
-    { owner: 2, id: 9, position: 51, isGoal: false },
-    { owner: 2, id: 10, position: 52, isGoal: false },
-    { owner: 2, id: 11, position: 53, isGoal: false },
-    { owner: 3, id: 12, position: 68, isGoal: false },
-    { owner: 3, id: 13, position: 69, isGoal: false },
-    { owner: 3, id: 14, position: 70, isGoal: false },
-    { owner: 3, id: 15, position: 71, isGoal: false },
-];
+type Game = {
+    id: string;
+    name: string;
+    players: Player[];
+    masus: Masu[];
+    koma: Koma[];
+    nowUser: Player | null;
+};
 
-const rooms: ioGame[] = [];
+const Games: Game[] = [];
 
-rooms.push({
+type setupProps = {
+    Masus: Masu[];
+    Komas: Koma[];
+};
+
+function setup(): setupProps {
+    const Masus: Masu[] = [];
+    const Komas: Koma[] = [];
+    let mapPosition: THREE.Vector3[] = [
+        // 左下を0,0にする
+        // turn point
+        new THREE.Vector3(5, 0, 0),
+        // Goal Masu
+        new THREE.Vector3(5, 0, 1),
+        new THREE.Vector3(5, 0, 2),
+        new THREE.Vector3(5, 0, 3),
+        new THREE.Vector3(5, 0, 4),
+        // normal
+        new THREE.Vector3(4, 0, 0),
+        new THREE.Vector3(4, 0, 1),
+        new THREE.Vector3(4, 0, 2),
+        new THREE.Vector3(4, 0, 3),
+        new THREE.Vector3(4, 0, 4),
+        new THREE.Vector3(3, 0, 4),
+        new THREE.Vector3(2, 0, 4),
+        new THREE.Vector3(1, 0, 4),
+        new THREE.Vector3(0, 0, 4),
+        // spawn
+        new THREE.Vector3(1, 0, 1),
+        new THREE.Vector3(2, 0, 1),
+        new THREE.Vector3(1, 0, 2),
+        new THREE.Vector3(2, 0, 2),
+    ];
+    const playerCount: number = 4;
+    const masuCount: number = 18;
+    const size: number = 10;
+    for (let i = 0; i < playerCount; i++) {
+        const masuBeginIndex = Masus.length;
+
+        let rawPostion: THREE.Vector3[] = [];
+
+        switch (i) {
+            default:
+                rawPostion = mapPosition;
+                break;
+
+            case 1: {
+                rawPostion = mapPosition.map((v) => {
+                    const v2 = v.clone();
+                    v2.x = v.z;
+                    v2.z = v.x;
+                    v2.z *= -1;
+                    v2.z += size;
+                    return v2;
+                });
+                break;
+            }
+
+            case 2: {
+                rawPostion = mapPosition.map((v) => {
+                    const v2 = v.clone();
+                    v2.x *= -1;
+                    v2.z *= -1;
+                    v2.x += size;
+                    v2.z += size;
+                    return v2;
+                });
+                break;
+            }
+
+            case 3: {
+                rawPostion = mapPosition.map((v) => {
+                    const v2 = v.clone();
+                    v2.x = v.z;
+                    v2.z = v.x;
+                    v2.x *= -1;
+                    v2.x += size;
+                    return v2;
+                });
+                break;
+            }
+        }
+        for (let j = 0; j < masuCount; j++) {
+            // const masu: Masu = new Masu(masuBeginIndex + j, rawPostion[j], 1);
+            const masu: Masu = {
+                id: masuBeginIndex + j,
+                Position: rawPostion[j],
+                GoalPlayer: i,
+                _type: 0,
+                _prev: null,
+                _next: null,
+                _nextForGoal: null,
+            };
+
+            // Masu type
+            if (j === 0) {
+                // turn
+                masu._type = 2;
+            } else if (j <= 4) {
+                // goal
+                masu._type = 1;
+            } else if (j <= 13) {
+                // normal
+                masu._type = 0;
+            } else if (j <= 17) {
+                // spawn
+                masu._type = 3;
+            }
+
+            // 普通の Masu は-1
+            if (j <= 4 && j >= 1) {
+                masu.GoalPlayer = i - 1;
+                if (i === 0) {
+                    masu.GoalPlayer = 3;
+                }
+            } else {
+                masu.GoalPlayer = -1;
+            }
+
+            Masus.push(masu);
+        }
+
+        // 連結管理
+        for (let i = 0; i < 9; i++) {
+            Masus[masuBeginIndex + 13 - i]._next = masuBeginIndex + 12 - i;
+        }
+        Masus[masuBeginIndex + 5]._next = masuBeginIndex;
+        for (let i = 0; i < 3; i++) {
+            Masus[masuBeginIndex + 1 + i]._next = masuBeginIndex + 2 + i;
+        }
+        // 14~17
+        for (let i = 0; i < 4; i++) {
+            Masus[masuBeginIndex + i + 14]._next = masuBeginIndex + 13;
+        }
+
+        // _nextForGoal
+        Masus[masuBeginIndex + 0]._nextForGoal = masuBeginIndex + 1;
+
+        // Komas
+        for (let k = 0; k < 4; k++) {
+            // _allKoma.push(new Koma(_allMasu[masuBeginIndex + 14 + k], i));
+            Komas.push({
+                id: i * 4 + k,
+                isGoal: false,
+                owner: i,
+                _spawnMasu: masuBeginIndex + 14 + k,
+                _beginMasu: null,
+                _endMasu: null,
+                Position: new THREE.Vector3(
+                    Masus[masuBeginIndex + 14 + k].Position.x,
+                    Masus[masuBeginIndex + 14 + k].Position.y + 0.2,
+                    Masus[masuBeginIndex + 14 + k].Position.z
+                ),
+            });
+        }
+
+        // start, end, spawn Masu for player
+        // const player: Player = {
+        //     _beginMasu: Masus[masuBeginIndex],
+        //     _endMasu: Masus[masuBeginIndex + masuCount - 1],
+        //     _spawnMasu: Masus[masuBeginIndex + 5],
+        // };
+    }
+    for (let i = 1; i <= 3; i++) {
+        Masus[i * 18]._next = i * 18 - 4 - 1;
+    }
+    Masus[0]._next = 67;
+    return { Masus, Komas };
+}
+
+const { Masus, Komas } = setup();
+
+Games.push({
     id: "1",
     name: "room1",
-    users: [],
-    koma: DefaultKoma,
+    players: [],
+    masus: Masus,
+    koma: Komas,
     nowUser: null,
 });
 
@@ -80,47 +256,52 @@ io.on("connection", (socket) => {
     if (socket.rooms.size > 4) {
         return;
     }
-    if (rooms[0].users.length > 4) {
+    if (Games[0].players.length > 4) {
         return;
     }
 
     socket.join("room1");
-    rooms[0] = {
-        ...rooms[0],
-        users: [
-            ...rooms[0].users,
+    Games[0] = {
+        ...Games[0],
+        players: [
+            ...Games[0].players,
             {
-                id: rooms[0].users.length,
+                id: Games[0].players.length,
                 socketID: socket.id,
-                name: "user " + rooms[0].users.length,
+                name: "user " + Games[0].players.length,
+                // _beginMasu: null,
+                // _endMasu: null,
+                // _spawnMasu: null,
             },
         ],
         nowUser:
-            rooms[0].nowUser == null ? rooms[0].users[0] : rooms[0].nowUser,
+            Games[0].nowUser == null ? Games[0].players[0] : Games[0].nowUser,
     };
     socket.emit("message", "Hello there!");
-    io.to("room1").emit("update", rooms[0]);
+    io.to("room1").emit("update", Games[0]);
 
     socket.on("disconnect", () => {
         socket.leave("room1");
-        rooms[0] = {
-            ...rooms[0],
-            users: rooms[0].users.filter((user) => user.socketID != socket.id),
+        Games[0] = {
+            ...Games[0],
+            players: Games[0].players.filter(
+                (user) => user.socketID != socket.id
+            ),
             nowUser:
-                rooms[0].nowUser?.socketID == socket.id
-                    ? rooms[0].users[0]
-                    : rooms[0].nowUser,
+                Games[0].nowUser?.socketID == socket.id
+                    ? Games[0].players[0]
+                    : Games[0].nowUser,
         };
-        io.to("room1").emit("update", rooms[0]);
+        io.to("room1").emit("update", Games[0]);
         console.log("user disconnected");
     });
 });
 
 io.on("disconnect", (socket) => {
     socket.leave("room1");
-    delete rooms[0].users[socket.id];
-    if (rooms[0].nowUser !== null && rooms[0].nowUser.socketID == socket.id) {
-        rooms[0].nowUser = null;
+    delete Games[0].players[socket.id];
+    if (Games[0].nowUser !== null && Games[0].nowUser.socketID == socket.id) {
+        Games[0].nowUser = null;
     }
     // ...
     console.log("user disconnected");

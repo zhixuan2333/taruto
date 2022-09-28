@@ -13,7 +13,9 @@
         "typescript": "^4.7.4"
     },
     "dependencies": {
-        "socket.io": "^4.5.1"
+        "@types/three": "^0.144.0",
+        "socket.io": "^4.5.1",
+        "three": "^0.144.0"
     },
     "optionalDependencies": {
         "bufferutil": "^4.0.6",

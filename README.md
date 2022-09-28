@@ -25,6 +25,6 @@ yarn start
 Run server in another terminal
 
 ```sh
-cd ../server
+cd ./server
 yarn start
 ```

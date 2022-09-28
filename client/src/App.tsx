@@ -1,82 +1,56 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
+type Masu = {
+    id: number;
 
-class Masu {
-    public id: number;
-
-    public Position: THREE.Vector3;
-    public GoalPlayer: number;
+    Position: THREE.Vector3;
+    GoalPlayer: number;
 
     // 0: normal, 1: goal, 2: turn 3: spawn
-    public _type: number = 0;
+    _type: number;
 
     // 連結管理
-    public _prev?: Masu;
-    public _next?: Masu;
-    public _nextForGoal?: Masu;
-    constructor(id: number, position: THREE.Vector3, goalPlayer: number) {
-        this.id = id;
-        this.Position = position;
-        this.GoalPlayer = goalPlayer;
-    }
-}
+    _prev: number | null;
+    _next: number | null;
+    _nextForGoal: number | null;
+};
 
-class Player {
-    public _beginMasu?: Masu;
-    public _endMasu?: Masu;
-    public _spawnMasu?: Masu;
-    constructor(beginMasu?: Masu, endMasu?: Masu, spawnMasu?: Masu) {
-        this._beginMasu = beginMasu;
-        this._endMasu = endMasu;
-        this._spawnMasu = spawnMasu;
-    }
-}
+type Player = {
+    // 0~3
+    id: number;
+    socketID: string;
+    name: string;
+    // _beginMasu: Masu | null;
+    // _endMasu: Masu | null;
+    // _spawnMasu: Masu | null;
+};
 
-class Koma {
-    public _beginMasu?: Masu;
-    public _endMasu?: Masu;
-    public _spawnMasu: Masu;
-    public _owner: number;
-    public Position: THREE.Vector3;
-    constructor(
-        spawnMasu: Masu,
-        owner: number,
-        beginMasu?: Masu,
-        endMasu?: Masu
-    ) {
-        this._beginMasu = beginMasu;
-        this._endMasu = endMasu;
-        this._spawnMasu = spawnMasu;
-        this._owner = owner;
+type Koma = {
+    // 0~3
+    owner: number;
+    // 0~15
+    id: number;
+    _beginMasu: number | null;
+    _endMasu: number | null;
+    _spawnMasu: number;
+    Position: THREE.Vector3;
+    isGoal: boolean;
+};
 
-        this.Position = new THREE.Vector3(
-            this._spawnMasu.Position.x,
-            this._spawnMasu.Position.y + 0.2,
-            this._spawnMasu.Position.z
-        );
-    }
+type Game = {
+    id: string;
+    name: string;
+    players: Player[];
+    masus: Masu[];
+    koma: Koma[];
+    nowUser: Player | null;
+};
 
-    // y座標は固定
-    public MoveTo(position: THREE.Vector3) {
-        this.Position.x = position.x;
-        this.Position.z = position.z;
-    }
-
-    public MoveToMasu(masu: Masu) {
-        this.Position.x = masu.Position.x;
-        this.Position.z = masu.Position.z;
-    }
-
-    public MoveToSpawnMasu() {
-        this.Position.x = this._spawnMasu.Position.x;
-        this.Position.z = this._spawnMasu.Position.z;
-    }
-}
 
 type MapProps = {
     temp: THREE.Object3D;
@@ -132,9 +106,9 @@ type KomaProps = {
     temp: THREE.Object3D;
     allMasu: Masu[];
     allKoma: Koma[];
-    setAllKoma: React.Dispatch<React.SetStateAction<Koma[]>>;
+    // setAllKoma: React.Dispatch<React.SetStateAction<Koma[]>>;
 };
-function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
+function Komas({ temp, allMasu, allKoma }: KomaProps) {
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
     useEffect(() => {
@@ -149,7 +123,7 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
 
             ref.current.setMatrixAt(i, temp.matrix);
 
-            switch (allKoma[i]._owner) {
+            switch (allKoma[i].owner) {
                 case 0: {
                     ref.current.setColorAt(i, new THREE.Color(0x00ff00));
                     break;
@@ -173,7 +147,7 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
     }, [allKoma, temp]);
 
 
-    // # For Debug
+    // // # For Debug
     // let id: number = 0;
     // let masu: Masu = allKoma[id]._spawnMasu
     // let time: number = 0;
@@ -182,7 +156,9 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
     //     time++;
     //     if (time % 10 !== 0) return;
     //     setAllKoma(() => {
-    //         allKoma[id].MoveToMasu(masu);
+    //         allKoma[id].Position = masu.Position;
+    //         allKoma[id].Position.y = 0.2;
+
     //         return allKoma;
     //     });
     //     temp2.position.set(
@@ -198,11 +174,11 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
     //     ref.current.instanceMatrix.needsUpdate = true;
 
     //     if (
-    //         typeof masu._nextForGoal !== "undefined" &&
+    //         masu._nextForGoal !== null &&
     //         masu._nextForGoal.GoalPlayer === allKoma[id]._owner
     //     ) {
     //         masu = masu._nextForGoal;
-    //     } else if (typeof masu._next !== "undefined") {
+    //     } else if (masu._next !== null) {
     //         masu = masu._next;
     //     }
     // });
@@ -215,183 +191,185 @@ function Komas({ temp, allMasu, allKoma, setAllKoma }: KomaProps) {
 }
 
 
-const socket = io("ws://localhost:8080");
+const socket = io("http://localhost:8080");
 
-type ioGame = {
-    id: string;
-    name: string;
-    users: ioPlayer[];
-    koma: ioKoma[];
-    nowUser: ioPlayer | null;
-};
-
-type ioPlayer = {
-    // 0~3
-    id: number;
-    socketID: string;
-    name: string;
-};
-
-type ioKoma = {
-    // 0~3
-    owner: number;
-    // 0~15
-    id: number;
-    // the Masu id 0~71
-    position: number;
-    isGoal: boolean;
-};
 function App() {
-    const [allMasu, setAllMasu] = useState<Masu[]>([]);
-    const [allKoma, setAllKoma] = useState<Koma[]>([]);
-    useMemo(() => {
-        let _allMasu: Masu[] = [];
-        let _allKoma: Koma[] = [];
-        let mapPosition: THREE.Vector3[] = [
-            // 左下を0,0にする
-            // turn point
-            new THREE.Vector3(5, 0, 0),
-            // Goal Masu
-            new THREE.Vector3(5, 0, 1),
-            new THREE.Vector3(5, 0, 2),
-            new THREE.Vector3(5, 0, 3),
-            new THREE.Vector3(5, 0, 4),
-            // normal
-            new THREE.Vector3(4, 0, 0),
-            new THREE.Vector3(4, 0, 1),
-            new THREE.Vector3(4, 0, 2),
-            new THREE.Vector3(4, 0, 3),
-            new THREE.Vector3(4, 0, 4),
-            new THREE.Vector3(3, 0, 4),
-            new THREE.Vector3(2, 0, 4),
-            new THREE.Vector3(1, 0, 4),
-            new THREE.Vector3(0, 0, 4),
-            // spawn
-            new THREE.Vector3(1, 0, 1),
-            new THREE.Vector3(2, 0, 1),
-            new THREE.Vector3(1, 0, 2),
-            new THREE.Vector3(2, 0, 2),
-        ];
-        const playerCount: number = 4;
-        const masuCount: number = 18;
-        const size: number = 10;
-        for (let i = 0; i < playerCount; i++) {
-            const player = new Player();
+    // const [allMasu, setAllMasu] = useState<Masu[]>([]);
+    // const [allKoma, setAllKoma] = useState<Koma[]>([]);
+    const [game, setGame] = useState<Game | null>(null);
+    // useMemo(() => {
+    //     let _allMasu: Masu[] = [];
+    //     let _allKoma: Koma[] = [];
+    //     let mapPosition: THREE.Vector3[] = [
+    //         // 左下を0,0にする
+    //         // turn point
+    //         new THREE.Vector3(5, 0, 0),
+    //         // Goal Masu
+    //         new THREE.Vector3(5, 0, 1),
+    //         new THREE.Vector3(5, 0, 2),
+    //         new THREE.Vector3(5, 0, 3),
+    //         new THREE.Vector3(5, 0, 4),
+    //         // normal
+    //         new THREE.Vector3(4, 0, 0),
+    //         new THREE.Vector3(4, 0, 1),
+    //         new THREE.Vector3(4, 0, 2),
+    //         new THREE.Vector3(4, 0, 3),
+    //         new THREE.Vector3(4, 0, 4),
+    //         new THREE.Vector3(3, 0, 4),
+    //         new THREE.Vector3(2, 0, 4),
+    //         new THREE.Vector3(1, 0, 4),
+    //         new THREE.Vector3(0, 0, 4),
+    //         // spawn
+    //         new THREE.Vector3(1, 0, 1),
+    //         new THREE.Vector3(2, 0, 1),
+    //         new THREE.Vector3(1, 0, 2),
+    //         new THREE.Vector3(2, 0, 2),
+    //     ];
+    //     const playerCount: number = 4;
+    //     const masuCount: number = 18;
+    //     const size: number = 10;
+    //     for (let i = 0; i < playerCount; i++) {
 
-            const masuBeginIndex = _allMasu.length;
+    //         const masuBeginIndex = _allMasu.length;
 
-            let rawPostion: THREE.Vector3[] = [];
+    //         let rawPostion: THREE.Vector3[] = [];
 
-            switch (i) {
-                default:
-                    rawPostion = mapPosition;
-                    break;
+    //         switch (i) {
+    //             default:
+    //                 rawPostion = mapPosition;
+    //                 break;
 
-                case 1: {
-                    rawPostion = mapPosition.map((v) => {
-                        const v2 = v.clone();
-                        v2.x = v.z;
-                        v2.z = v.x;
-                        v2.z *= -1;
-                        v2.z += size;
-                        return v2;
-                    });
-                    break;
-                }
+    //             case 1: {
+    //                 rawPostion = mapPosition.map((v) => {
+    //                     const v2 = v.clone();
+    //                     v2.x = v.z;
+    //                     v2.z = v.x;
+    //                     v2.z *= -1;
+    //                     v2.z += size;
+    //                     return v2;
+    //                 });
+    //                 break;
+    //             }
 
-                case 2: {
-                    rawPostion = mapPosition.map((v) => {
-                        const v2 = v.clone();
-                        v2.x *= -1;
-                        v2.z *= -1;
-                        v2.x += size;
-                        v2.z += size;
-                        return v2;
-                    });
-                    break;
-                }
+    //             case 2: {
+    //                 rawPostion = mapPosition.map((v) => {
+    //                     const v2 = v.clone();
+    //                     v2.x *= -1;
+    //                     v2.z *= -1;
+    //                     v2.x += size;
+    //                     v2.z += size;
+    //                     return v2;
+    //                 });
+    //                 break;
+    //             }
 
-                case 3: {
-                    rawPostion = mapPosition.map((v) => {
-                        const v2 = v.clone();
-                        v2.x = v.z;
-                        v2.z = v.x;
-                        v2.x *= -1;
-                        v2.x += size;
-                        return v2;
-                    });
-                    break;
-                }
-            }
-            for (let j = 0; j < masuCount; j++) {
-                const masu = new Masu(masuBeginIndex + j, rawPostion[j], 1);
+    //             case 3: {
+    //                 rawPostion = mapPosition.map((v) => {
+    //                     const v2 = v.clone();
+    //                     v2.x = v.z;
+    //                     v2.z = v.x;
+    //                     v2.x *= -1;
+    //                     v2.x += size;
+    //                     return v2;
+    //                 });
+    //                 break;
+    //             }
+    //         }
+    //         for (let j = 0; j < masuCount; j++) {
+    //             // const masu: Masu = new Masu(masuBeginIndex + j, rawPostion[j], 1);
+    //             const masu: Masu = {
+    //                 id: masuBeginIndex + j,
+    //                 Position: rawPostion[j],
+    //                 GoalPlayer: i,
+    //                 _type: 0,
+    //                 _prev: null,
+    //                 _next: null,
+    //                 _nextForGoal: null
+    //             }
 
-                // Masu type
-                if (j === 0) {
-                    // turn
-                    masu._type = 2;
-                } else if (j <= 4) {
-                    // goal
-                    masu._type = 1;
-                } else if (j <= 13) {
-                    // normal
-                    masu._type = 0;
-                } else if (j <= 17) {
-                    // spawn
-                    masu._type = 3;
-                }
+    //             // Masu type
+    //             if (j === 0) {
+    //                 // turn
+    //                 masu._type = 2;
+    //             } else if (j <= 4) {
+    //                 // goal
+    //                 masu._type = 1;
+    //             } else if (j <= 13) {
+    //                 // normal
+    //                 masu._type = 0;
+    //             } else if (j <= 17) {
+    //                 // spawn
+    //                 masu._type = 3;
+    //             }
 
-                // 普通の Masu は-1
-                if (j <= 4 && j >= 1) {
-                    masu.GoalPlayer = i - 1;
-                    if (i === 0) {
-                        masu.GoalPlayer = 3;
-                    }
-                } else {
-                    masu.GoalPlayer = -1;
-                }
+    //             // 普通の Masu は-1
+    //             if (j <= 4 && j >= 1) {
+    //                 masu.GoalPlayer = i - 1;
+    //                 if (i === 0) {
+    //                     masu.GoalPlayer = 3;
+    //                 }
+    //             } else {
+    //                 masu.GoalPlayer = -1;
+    //             }
 
-                _allMasu.push(masu);
-            }
+    //             _allMasu.push(masu);
+    //         }
 
-            // 連結管理
-            for (let i = 0; i < 9; i++) {
-                _allMasu[masuBeginIndex + 13 - i]._next =
-                    _allMasu[masuBeginIndex + 12 - i];
-            }
-            _allMasu[masuBeginIndex + 5]._next = _allMasu[masuBeginIndex];
-            for (let i = 0; i < 3; i++) {
-                _allMasu[masuBeginIndex + 1 + i]._next =
-                    _allMasu[masuBeginIndex + 2 + i];
-            }
-            // 14~17
-            for (let i = 0; i < 4; i++) {
-                _allMasu[masuBeginIndex + i + 14]._next =
-                    _allMasu[masuBeginIndex + 13];
-            }
+    //         // 連結管理
+    //         for (let i = 0; i < 9; i++) {
+    //             _allMasu[masuBeginIndex + 13 - i]._next =
+    //                 _allMasu[masuBeginIndex + 12 - i];
+    //         }
+    //         _allMasu[masuBeginIndex + 5]._next = _allMasu[masuBeginIndex];
+    //         for (let i = 0; i < 3; i++) {
+    //             _allMasu[masuBeginIndex + 1 + i]._next =
+    //                 _allMasu[masuBeginIndex + 2 + i];
+    //         }
+    //         // 14~17
+    //         for (let i = 0; i < 4; i++) {
+    //             _allMasu[masuBeginIndex + i + 14]._next =
+    //                 _allMasu[masuBeginIndex + 13];
+    //         }
 
-            // _nextForGoal
-            _allMasu[masuBeginIndex + 0]._nextForGoal =
-                _allMasu[masuBeginIndex + 1];
+    //         // _nextForGoal
+    //         _allMasu[masuBeginIndex + 0]._nextForGoal =
+    //             _allMasu[masuBeginIndex + 1];
 
-            // Komas
-            for (let k = 0; k < 4; k++) {
-                _allKoma.push(new Koma(_allMasu[masuBeginIndex + 14 + k], i));
-            }
+    //         // Komas
+    //         for (let k = 0; k < 4; k++) {
+    //             // _allKoma.push(new Koma(_allMasu[masuBeginIndex + 14 + k], i));
+    //             _allKoma.push({
+    //                 id: i * 4 + k,
+    //                 isGoal: false,
+    //                 owner: i,
+    //                 _spawnMasu: _allMasu[masuBeginIndex + 14 + k],
+    //                 _beginMasu: null,
+    //                 _endMasu: null,
+    //                 Position: new THREE.Vector3(
+    //                     _allMasu[masuBeginIndex + 14 + k].Position.x,
+    //                     _allMasu[masuBeginIndex + 14 + k].Position.y + 0.2,
+    //                     _allMasu[masuBeginIndex + 14 + k].Position.z
+    //                 )
+    //             });
 
-            // start, end, spawn Masu for player
-            player._beginMasu = _allMasu[masuBeginIndex];
-            player._endMasu = _allMasu[masuBeginIndex + masuCount - 1];
-            player._spawnMasu = _allMasu[masuBeginIndex + 5];
-        }
-        for (let i = 1; i <= 3; i++) {
-            _allMasu[i * 18]._next = _allMasu[i * 18 - 4 - 1];
-        }
-        _allMasu[0]._next = _allMasu[67];
+    //         }
 
-        setAllKoma(_allKoma);
-        setAllMasu(_allMasu);
-    }, []);
+    //         // start, end, spawn Masu for player
+    //         // const player: Player = {
+    //         //     _beginMasu: _allMasu[masuBeginIndex],
+    //         //     _endMasu: _allMasu[masuBeginIndex + masuCount - 1],
+    //         //     _spawnMasu: _allMasu[masuBeginIndex + 5],
+    //         // };
+
+    //     }
+    //     for (let i = 1; i <= 3; i++) {
+    //         _allMasu[i * 18]._next = _allMasu[i * 18 - 4 - 1];
+    //     }
+    //     _allMasu[0]._next = _allMasu[67];
+
+    //     setAllKoma(_allKoma);
+    //     setAllMasu(_allMasu);
+    // }, []);
 
     useEffect(() => {
         socket.on('connect', () => {
@@ -407,7 +385,8 @@ function App() {
             console.log(data);
         })
 
-        socket.on('update', (data: ioGame) => {
+        socket.on('update', (data: Game) => {
+            setGame(data);
             console.log(data);
         })
 
@@ -419,38 +398,29 @@ function App() {
     camera.position.y = 10;
     camera.zoom = 1;
 
-    console.log(allMasu);
-    console.log(allKoma);
-    allMasu.forEach((v) => {
-        console.log(
-            "id: " +
-            v.id +
-            " positon: " +
-            v.Position.x +
-            " " +
-            v.Position.y +
-            " " +
-            v.Position.z
-        );
-    });
-
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
-            <Canvas camera={camera}>
-                <ambientLight />
-                <pointLight position={[10, 10, 10]} />
+            {game !== null ? (
+                <>
+                    <Canvas camera={camera}>
+                        <ambientLight />
+                        <pointLight position={[10, 10, 10]} />
 
-                <Maps temp={new THREE.Object3D()} allMasu={allMasu} />
-                <Komas
-                    temp={new THREE.Object3D()}
-                    allKoma={allKoma}
-                    allMasu={allMasu}
-                    setAllKoma={setAllKoma}
-                />
+                        <Maps temp={new THREE.Object3D()} allMasu={game!.masus} />
+                        <Komas
+                            temp={new THREE.Object3D()}
+                            allKoma={game!.koma}
+                            allMasu={game!.masus}
+                        />
 
-                <OrbitControls makeDefault={true} target={[5, 0, 5]} />
-                <axesHelper />
-            </Canvas>
+                        <OrbitControls makeDefault={true} target={[5, 0, 5]} />
+                        <axesHelper />
+                    </Canvas>
+
+                </>
+            ) : (
+                <h1>loading</h1>
+            )}
         </div>
     );
 }
