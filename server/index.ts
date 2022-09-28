@@ -249,10 +249,10 @@ io.on("connection", (socket) => {
     });
 
     // if user more than 4, disconnect
-    if (socket.rooms.size > 4) {
+    if (socket.rooms.size > 3) {
         return;
     }
-    if (Games[0].players.length > 4) {
+    if (Games[0].players.length > 3) {
         return;
     }
 
