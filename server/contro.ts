@@ -14,6 +14,7 @@ function playerJoin(g: Game, socketID: string, name: string): err {
     g.players.push({
         id: g.players.length,
         socketID: socketID,
+        // TODO: nameの重複チェック, random name
         name: name,
     });
     return null;
@@ -23,6 +24,9 @@ function playerLeave(g: Game, socketID: string): err {
     const player = g.players.find((p) => p.socketID === socketID);
     if (!player) {
         return "Player not found";
+    }
+    if (g.nowUser === player) {
+        g.nowUser = null;
     }
     g.players = g.players.filter((p) => p.socketID !== socketID);
     return null;
