@@ -60,6 +60,8 @@ type Game = {
     nowUser: Player | null;
 };
 
+export { Masu, Player, Koma, Game };
+
 const Games: Game[] = [];
 
 type setupProps = {
