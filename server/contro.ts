@@ -19,9 +19,9 @@ function gameCreate(RoomID: string): Game {
 }
 
 // Player
-function playerJoin(g: Game, socketID: string, name: string): err {
+function playerJoin(g: Game, socketID: string, name: string): Game {
     if (g.players.length >= 4) {
-        return "Game is full";
+        return g;
     }
     g.players.push({
         id: g.players.length,
@@ -29,19 +29,19 @@ function playerJoin(g: Game, socketID: string, name: string): err {
         // TODO: nameの重複チェック, random name
         name: name,
     });
-    return null;
+    return g;
 }
 
-function playerLeave(g: Game, socketID: string): err {
+function playerLeave(g: Game, socketID: string): Game {
     const player = g.players.find((p) => p.socketID === socketID);
     if (!player) {
-        return "Player not found";
+        return g;
     }
     if (g.nowUser === player) {
         g.nowUser = null;
     }
     g.players = g.players.filter((p) => p.socketID !== socketID);
-    return null;
+    return g;
 }
 
 // Masu

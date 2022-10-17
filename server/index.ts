@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import * as THREE from "three";
-import { gameCreate } from "./contro";
+import { gameCreate, playerJoin, playerLeave } from "./contro";
 
 const io = new Server(8080, {
     /* options */
@@ -94,21 +94,7 @@ io.on("connection", (socket) => {
     }
 
     // if game players less than 4, join game
-    Games.set(GameIndex, {
-        ...Games[GameIndex],
-        players: [
-            ...Games[GameIndex].players,
-            {
-                id: Games[GameIndex].players.length,
-                socketID: socket.id,
-                name: "user " + Games[GameIndex].players.length,
-            },
-        ],
-        nowUser:
-            Games[GameIndex].nowUser == null
-                ? Games[GameIndex].players[GameIndex]
-                : Games[GameIndex].nowUser,
-    });
+    Games.set(GameIndex, playerJoin(Games[GameIndex], socket.id, "test"));
 
     // send game data
     io.to(GameIndex).emit("update", Games[GameIndex]);
@@ -118,19 +104,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+        // remove player
         socket.leave(GameIndex);
-        Games.set(GameIndex, {
-            ...Games[GameIndex],
-            players: Games[GameIndex].players.filter(
-                (user) => user.socketID != socket.id
-            ),
-            nowUser:
-                Games[GameIndex].nowUser?.socketID == socket.id
-                    ? Games[GameIndex].players[GameIndex]
-                    : Games[GameIndex].nowUser,
-        });
+        Games.set(GameIndex, playerLeave(Games[GameIndex], socket.id));
         io.to(GameIndex).emit("update", Games[GameIndex]);
-        socket.leave(GameIndex);
+
         console.log("user disconnected");
     });
 });
