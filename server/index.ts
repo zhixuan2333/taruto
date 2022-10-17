@@ -94,7 +94,7 @@ io.on("connection", (socket) => {
     }
 
     // if game players less than 4, join game
-    Games[GameIndex] = {
+    Games.set(GameIndex, {
         ...Games[GameIndex],
         players: [
             ...Games[GameIndex].players,
@@ -108,17 +108,18 @@ io.on("connection", (socket) => {
             Games[GameIndex].nowUser == null
                 ? Games[GameIndex].players[GameIndex]
                 : Games[GameIndex].nowUser,
-    };
+    });
 
+    // send game data
     io.to(GameIndex).emit("update", Games[GameIndex]);
 
-    socket.on("start", (msg) => {
+    socket.on("start", () => {
         console.log("start");
     });
 
     socket.on("disconnect", () => {
         socket.leave(GameIndex);
-        Games[GameIndex] = {
+        Games.set(GameIndex, {
             ...Games[GameIndex],
             players: Games[GameIndex].players.filter(
                 (user) => user.socketID != socket.id
@@ -127,7 +128,7 @@ io.on("connection", (socket) => {
                 Games[GameIndex].nowUser?.socketID == socket.id
                     ? Games[GameIndex].players[GameIndex]
                     : Games[GameIndex].nowUser,
-        };
+        });
         io.to(GameIndex).emit("update", Games[GameIndex]);
         socket.leave(GameIndex);
         console.log("user disconnected");
