@@ -1,5 +1,4 @@
 import { Server } from "socket.io";
-import * as THREE from "three";
 import { gameCreate, playerJoin, playerLeave } from "./contro";
 
 const io = new Server(8080, {
@@ -89,15 +88,15 @@ io.on("connection", (socket) => {
     }
 
     // if game players more than 4, disconnect
-    if (Games[GameIndex].players.length > 3) {
+    if (Games.get(GameIndex)!.players.length > 3) {
         return;
     }
 
     // if game players less than 4, join game
-    Games.set(GameIndex, playerJoin(Games[GameIndex], socket.id, "test"));
+    Games.set(GameIndex, playerJoin(Games.get(GameIndex)!, socket.id, "test"));
 
     // send game data
-    io.to(GameIndex).emit("update", Games[GameIndex]);
+    io.to(GameIndex).emit("update", Games.get(GameIndex));
 
     socket.on("start", () => {
         console.log("start");
@@ -106,8 +105,8 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         // remove player
         socket.leave(GameIndex);
-        Games.set(GameIndex, playerLeave(Games[GameIndex], socket.id));
-        io.to(GameIndex).emit("update", Games[GameIndex]);
+        Games.set(GameIndex, playerLeave(Games.get(GameIndex)!, socket.id));
+        io.to(GameIndex).emit("update", Games.get(GameIndex));
 
         console.log("user disconnected");
     });
@@ -115,9 +114,14 @@ io.on("connection", (socket) => {
 
 io.on("disconnect", (socket) => {
     socket.leave("room1");
-    delete Games[0].players[socket.id];
-    if (Games[0].nowUser !== null && Games[0].nowUser.socketID == socket.id) {
-        Games[0].nowUser = null;
-    }
+
+    // maybe not use
+    // delete Games.delete[socket.id];
+    // if (
+    //     Games["0"].nowUser !== null &&
+    //     Games["0"].nowUser.socketID == socket.id
+    // ) {
+    //     Games["0"].nowUser = null;
+    // }
     console.log("user disconnected");
 });

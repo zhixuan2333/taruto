@@ -1,6 +1,6 @@
 // functions for Game, Player, Masu, Koma
 
-import THREE from "three";
+import * as THREE from "three";
 import { Game, Koma, Masu } from ".";
 
 type err = string | null;
