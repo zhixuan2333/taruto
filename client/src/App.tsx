@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { FC, Suspense, useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
+import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
+
 
 type Masu = {
     id: number;
@@ -153,6 +155,17 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
 }
 
 
+function Cube() {
+    const texture_6 = useLoader(TextureLoader, 'textures/dice_6.jpeg')
+	return (
+		<mesh>
+			<boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial attach="material" map={texture_6} />
+		</mesh>
+	);
+};
+
+
 const socket = io("http://localhost:8080");
 
 function App() {
@@ -199,6 +212,9 @@ function App() {
                             allKoma={game!.koma}
                             allMasu={game!.masus}
                         />
+                        <Suspense fallback={null}>
+                            <Cube />
+                        </Suspense>
 
                         <OrbitControls makeDefault={true} target={[5, 0, 5]} />
                         <axesHelper />
