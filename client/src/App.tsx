@@ -4,6 +4,7 @@ import "./App.css";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
+import Dice from 'react-dice-roll';
 
 type Masu = {
     id: number;
@@ -187,6 +188,7 @@ function App() {
 
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
+            <Dice onRoll={(value) => console.log(value)} />
             {game !== null ? (
                 <>
                     <Canvas camera={camera}>
