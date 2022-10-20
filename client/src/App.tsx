@@ -156,11 +156,21 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
 
 
 function Cube() {
-    const texture_6 = useLoader(TextureLoader, 'textures/dice_6.jpeg')
+    const texture_1 = useLoader(TextureLoader, '/textures/dice_1.jpeg')
+    const texture_2 = useLoader(TextureLoader, '/textures/dice_2.jpeg')
+    const texture_3 = useLoader(TextureLoader, '/textures/dice_3.jpeg')
+    const texture_4 = useLoader(TextureLoader, '/textures/dice_4.jpeg')
+    const texture_5 = useLoader(TextureLoader, '/textures/dice_5.jpeg')
+    const texture_6 = useLoader(TextureLoader, '/textures/dice_6.jpeg')
 	return (
 		<mesh>
 			<boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial attach="material" map={texture_6} />
+            <meshBasicMaterial key={1} attach={`material-${1}`} map={texture_1} />
+            <meshBasicMaterial key={2} attach={`material-${2}`} map={texture_2} />
+            <meshBasicMaterial key={3} attach={`material-${3}`} map={texture_3} />
+            <meshBasicMaterial key={4} attach={`material-${4}`} map={texture_4} />
+            <meshBasicMaterial key={5} attach={`material-${5}`} map={texture_5} />
+            <meshBasicMaterial key={6} attach={`material-${6}`} map={texture_6} />
 		</mesh>
 	);
 };
