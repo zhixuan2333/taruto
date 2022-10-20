@@ -1,9 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
+import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
+import { Mesh } from "three";
+
 
 type Masu = {
     id: number;
@@ -152,6 +155,34 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
     );
 }
 
+function Cube() {
+    const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
+        '/textures/dice_1.jpeg',
+        '/textures/dice_2.jpeg',
+        '/textures/dice_3.jpeg',
+        '/textures/dice_4.jpeg',
+        '/textures/dice_5.jpeg',
+        '/textures/dice_6.jpeg',
+    ]);
+    const boxRef = useRef<Mesh>(null!);
+
+    useFrame(() => {
+        boxRef.current.rotation.x += 0.01;
+        boxRef.current.rotation.y += 0.01;
+    });
+    return (
+        <mesh ref={boxRef}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial attach={`material-0`} map={texture_1} />
+            <meshBasicMaterial attach={`material-3`} map={texture_2} />
+            <meshBasicMaterial attach={`material-4`} map={texture_3} />
+            <meshBasicMaterial attach={`material-5`} map={texture_4} />
+            <meshBasicMaterial attach={`material-2`} map={texture_5} />
+            <meshBasicMaterial attach={`material-1`} map={texture_6} />
+        </mesh>
+    );
+};
+
 
 const socket = io("http://localhost:8080");
 
@@ -199,6 +230,9 @@ function App() {
                             allKoma={game!.koma}
                             allMasu={game!.masus}
                         />
+                        <Suspense fallback={null}>
+                            <Cube />
+                        </Suspense>
 
                         <OrbitControls makeDefault={true} target={[5, 0, 5]} />
                         <axesHelper />
