@@ -1,10 +1,11 @@
-import React, { FC, Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
-import { Canvas, useLoader } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
+import { Mesh } from "three";
 
 
 type Masu = {
@@ -154,7 +155,6 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
     );
 }
 
-
 function Cube() {
     const texture_1 = useLoader(TextureLoader, '/textures/dice_1.jpeg')
     const texture_2 = useLoader(TextureLoader, '/textures/dice_2.jpeg')
@@ -162,15 +162,21 @@ function Cube() {
     const texture_4 = useLoader(TextureLoader, '/textures/dice_4.jpeg')
     const texture_5 = useLoader(TextureLoader, '/textures/dice_5.jpeg')
     const texture_6 = useLoader(TextureLoader, '/textures/dice_6.jpeg')
+    const boxRef = useRef<Mesh>(null!);
+
+    useFrame(() => {
+            boxRef.current.rotation.x += 0.01;
+            boxRef.current.rotation.y += 0.01;
+    });
 	return (
-		<mesh>
+		<mesh ref={boxRef} rotation-x={Math.PI * 0.25} rotation-y={Math.PI * 0.25}>
 			<boxGeometry args={[1, 1, 1]} />
-            <meshBasicMaterial key={1} attach={`material-${1}`} map={texture_1} />
-            <meshBasicMaterial key={2} attach={`material-${2}`} map={texture_2} />
-            <meshBasicMaterial key={3} attach={`material-${3}`} map={texture_3} />
-            <meshBasicMaterial key={4} attach={`material-${4}`} map={texture_4} />
-            <meshBasicMaterial key={5} attach={`material-${5}`} map={texture_5} />
-            <meshBasicMaterial key={6} attach={`material-${6}`} map={texture_6} />
+            <meshBasicMaterial attach={`material-0`} map={texture_1} />
+            <meshBasicMaterial attach={`material-3`} map={texture_2} />
+            <meshBasicMaterial attach={`material-4`} map={texture_3} />
+            <meshBasicMaterial attach={`material-5`} map={texture_4} />
+            <meshBasicMaterial attach={`material-2`} map={texture_5} />
+            <meshBasicMaterial attach={`material-1`} map={texture_6} />
 		</mesh>
 	);
 };
