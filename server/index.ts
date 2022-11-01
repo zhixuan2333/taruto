@@ -2,7 +2,10 @@ import { Server } from "socket.io";
 import { gameCreate, playerJoin, playerLeave } from "./contro";
 import type { Game } from "../lib/socket";
 
-const io = new Server(8080, {
+// Got port form env
+const port = parseInt(process.env.PORT || "", 10) || 8080;
+
+const io = new Server(port, {
     /* options */
     cors: {
         origin: "*",
