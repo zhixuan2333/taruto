@@ -1,7 +1,7 @@
 // functions for Game, Player, Masu, Koma
 
 import * as THREE from "three";
-import { Game, Koma, Masu } from ".";
+import { Game, Koma, Masu } from "../lib/socket";
 
 type err = string | null;
 
