@@ -60,7 +60,7 @@ type Game = {
     nowUser: Player | null;
 };
 
-export { Masu, Player, Koma, Game };
+export type { Masu, Player, Koma, Game };
 
 const Games = new Map<string, Game>();
 
