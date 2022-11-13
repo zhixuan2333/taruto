@@ -7,6 +7,8 @@ import * as THREE from "three";
 
 import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
 import { Mesh } from "three";
+import { a, useSpring } from "@react-spring/three";
+import { animated } from "react-spring";
 
 type Masu = {
     id: number;
@@ -155,39 +157,49 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
     );
 }
 
-function Cube() {
-    const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
-        '/textures/dice_1.jpeg',
-        '/textures/dice_2.jpeg',
-        '/textures/dice_3.jpeg',
-        '/textures/dice_4.jpeg',
-        '/textures/dice_5.jpeg',
-        '/textures/dice_6.jpeg',
-    ]);
-    const boxRef = useRef<Mesh>(null!);
-
-    useFrame(() => {
-        boxRef.current.rotation.x += 0.01;
-        boxRef.current.rotation.y += 0.01;
-    });
-    return (
-        <mesh ref={boxRef}>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshBasicMaterial attach={`material-0`} map={texture_1} />
-            <meshBasicMaterial attach={`material-3`} map={texture_2} />
-            <meshBasicMaterial attach={`material-4`} map={texture_3} />
-            <meshBasicMaterial attach={`material-5`} map={texture_4} />
-            <meshBasicMaterial attach={`material-2`} map={texture_5} />
-            <meshBasicMaterial attach={`material-1`} map={texture_6} />
-        </mesh>
-    );
-};
-
 
 const socket = io("http://localhost:8080");
 
 function App() {
     const [game, setGame] = useState<Game | null>(null);
+    const config = { mass: 5, tension: 400, friction: 50, precision: 0.0001 }
+    const [springa, setSp] = useSpring(() => ({
+
+        spring: 1,
+        loop: true,
+        rotation: [0, 0, 0],
+        from: {
+            rotation: [0, 0, 0],
+        },
+        to: {
+            rotation: [1, 1, 1],
+        }
+
+    }))
+
+    function Cube() {
+        const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
+            '/textures/dice_1.jpeg',
+            '/textures/dice_2.jpeg',
+            '/textures/dice_3.jpeg',
+            '/textures/dice_4.jpeg',
+            '/textures/dice_5.jpeg',
+            '/textures/dice_6.jpeg',
+        ]);
+        const boxRef = useRef<Mesh>(null!);
+        return (
+
+            <mesh ref={boxRef}>
+                <boxGeometry args={[1, 1, 1]} {...springa} />
+                <meshBasicMaterial attach={`material-0`} map={texture_1} />
+                <meshBasicMaterial attach={`material-3`} map={texture_2} />
+                <meshBasicMaterial attach={`material-4`} map={texture_3} />
+                <meshBasicMaterial attach={`material-5`} map={texture_4} />
+                <meshBasicMaterial attach={`material-2`} map={texture_5} />
+                <meshBasicMaterial attach={`material-1`} map={texture_6} />
+            </mesh>
+        );
+    };
 
     useEffect(() => {
         socket.on('connect', () => {
