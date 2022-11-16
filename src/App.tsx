@@ -130,7 +130,7 @@ function Cube({ CubeNumber }: CubeProps) {
     Faces.set(6, [1, 0, 0.5])
 
     const spring = useSpring({
-        // spring: active ? 1 : 0,
+        spring: active ? 1 : 0,
         to: [
             {
                 rotationX: random(),
@@ -144,10 +144,6 @@ function Cube({ CubeNumber }: CubeProps) {
                 rotationZ: Faces.get(CubeNumber)![2] * Math.PI,
                 scale: 1,
             },
-            useCallback(() => {
-                setActive(false);
-                socket.emit("roll", CubeNumber);
-            }, [CubeNumber]),
         ],
         from: {
             rotationX: 1 * Math.PI,
@@ -155,6 +151,10 @@ function Cube({ CubeNumber }: CubeProps) {
             rotationZ: 0.5 * Math.PI,
             scale: 1,
         },
+        onRest: () => {
+            setActive(false);
+            socket.emit("roll", CubeNumber);
+        }
     })
 
     const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
