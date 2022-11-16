@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
@@ -8,52 +8,7 @@ import * as THREE from "three";
 import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
 import { Mesh } from "three";
 import { a, useSpring } from "@react-spring/three";
-
-type Masu = {
-    id: number;
-
-    Position: THREE.Vector3;
-    GoalPlayer: number;
-
-    // 0: normal, 1: goal, 2: turn 3: spawn
-    _type: number;
-
-    // 連結管理
-    _prev: number | null;
-    _next: number | null;
-    _nextForGoal: number | null;
-};
-
-type Player = {
-    // 0~3
-    id: number;
-    socketID: string;
-    name: string;
-    // _beginMasu: Masu | null;
-    // _endMasu: Masu | null;
-    // _spawnMasu: Masu | null;
-};
-
-type Koma = {
-    // 0~3
-    owner: number;
-    // 0~15
-    id: number;
-    _beginMasu: number | null;
-    _endMasu: number | null;
-    _spawnMasu: number;
-    Position: number;
-    isGoal: boolean;
-};
-
-type Game = {
-    id: string;
-    name: string;
-    players: Player[];
-    masus: Masu[];
-    koma: Koma[];
-    nowUser: Player | null;
-};
+import type { Game, Koma, Masu } from "../lib/socket";
 
 type MapProps = {
     temp: THREE.Object3D;
@@ -157,79 +112,87 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
 }
 
 
+type CubeProps = {
+    CubeNumber: number
+};
+
+function Cube({ CubeNumber }: CubeProps) {
+    const [active, setActive] = useState(false);
+
+    const random = (): number => { return Math.random() * 4 * Math.PI }
+
+    const Faces = new Map<number, number[]>();
+    Faces.set(1, [0, 0, 0.5])
+    Faces.set(2, [0, 0, 1])
+    Faces.set(3, [0.5, 1, 0])
+    Faces.set(4, [0.5, 0, 0])
+    Faces.set(5, [0, 0, 0])
+    Faces.set(6, [1, 0, 0.5])
+
+    const spring = useSpring({
+        // spring: active ? 1 : 0,
+        to: [
+            {
+                rotationX: random(),
+                rotationY: random(),
+                rotationZ: random(),
+                scale: 1.5,
+            },
+            {
+                rotationX: Faces.get(CubeNumber)![0] * Math.PI,
+                rotationY: Faces.get(CubeNumber)![1] * Math.PI,
+                rotationZ: Faces.get(CubeNumber)![2] * Math.PI,
+                scale: 1,
+            },
+            useCallback(() => {
+                setActive(false);
+                socket.emit("roll", CubeNumber);
+            }, [CubeNumber]),
+        ],
+        from: {
+            rotationX: 1 * Math.PI,
+            rotationY: 0 * Math.PI,
+            rotationZ: 0.5 * Math.PI,
+            scale: 1,
+        },
+    })
+
+    const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
+        '/textures/dice_1.jpeg',
+        '/textures/dice_2.jpeg',
+        '/textures/dice_3.jpeg',
+        '/textures/dice_4.jpeg',
+        '/textures/dice_5.jpeg',
+        '/textures/dice_6.jpeg',
+    ]);
+    const boxRef = useRef<Mesh>(null!);
+
+    return (
+        <a.mesh
+            ref={boxRef}
+            rotation-x={spring.rotationX}
+            rotation-y={spring.rotationY}
+            rotation-z={spring.rotationZ}
+            scale-x={spring.scale}
+            scale-z={spring.scale}
+            scale-y={spring.scale}
+            onClick={() => setActive(true)}
+        >
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial attach={`material-0`} map={texture_1} />
+            <meshBasicMaterial attach={`material-3`} map={texture_2} />
+            <meshBasicMaterial attach={`material-4`} map={texture_3} />
+            <meshBasicMaterial attach={`material-5`} map={texture_4} />
+            <meshBasicMaterial attach={`material-2`} map={texture_5} />
+            <meshBasicMaterial attach={`material-1`} map={texture_6} />
+        </a.mesh>
+    );
+};
+
 const socket = io("http://localhost:8080");
 
 function App() {
     const [game, setGame] = useState<Game | null>(null);
-
-    function Cube() {
-        const [spring, api] = useSpring(() => ({
-            rotationX: 0,
-            rotationY: 0,
-            rotationZ: 0,
-            scale: 1,
-            onRest: () => {
-            }
-        }));
-
-        // a function to rotation X,Y,Z to a random face of dice
-        const onClick = () => {
-            const random = (): number => { return Math.random() * 4 * Math.PI }
-
-            socket.emit('Cube')
-            api.start({
-                rotationX: random(),
-                rotationY: random(),
-                rotationZ: random(),
-                scale: 1.5
-            })
-            socket.on('Cube', (data: number) => {
-                const Face: number[][] = [
-                    // 1~6
-                    [0, 0, 0],
-
-                ]
-                api.start({
-                    rotationX: random(),
-                    rotationY: random(),
-                    rotationZ: random(),
-                    scale: 1.5
-                })
-            })
-
-        }
-
-        const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
-            '/textures/dice_1.jpeg',
-            '/textures/dice_2.jpeg',
-            '/textures/dice_3.jpeg',
-            '/textures/dice_4.jpeg',
-            '/textures/dice_5.jpeg',
-            '/textures/dice_6.jpeg',
-        ]);
-        const boxRef = useRef<Mesh>(null!);
-
-        return (
-            <a.mesh
-                ref={boxRef}
-                rotation-x={spring.rotationX}
-                rotation-y={spring.rotationY}
-                rotation-z={spring.rotationZ}
-                scale-x={spring.scale}
-                scale-z={spring.scale}
-                scale-y={spring.scale}
-                onClick={() => onClick()}
-            >
-                <boxGeometry args={[1, 1, 1]} />
-                <meshBasicMaterial attach={`material-0`} map={texture_1} />
-                <meshBasicMaterial attach={`material-3`} map={texture_2} />
-                <meshBasicMaterial attach={`material-4`} map={texture_3} />
-                <meshBasicMaterial attach={`material-5`} map={texture_4} />
-                <meshBasicMaterial attach={`material-2`} map={texture_5} />
-                <meshBasicMaterial attach={`material-1`} map={texture_6} />
-            </a.mesh>
-        );
-    };
 
     useEffect(() => {
         socket.on('connect', () => {
@@ -249,7 +212,6 @@ function App() {
             setGame(data);
             console.log(data);
         })
-
 
     }, []);
 
@@ -273,7 +235,7 @@ function App() {
                             allMasu={game!.masus}
                         />
                         <Suspense fallback={null}>
-                            <Cube />
+                            <Cube CubeNumber={game!.CubeNumber} />
                         </Suspense>
 
                         <OrbitControls makeDefault={true} target={[5, 0, 5]} />

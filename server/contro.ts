@@ -12,8 +12,17 @@ function gameCreate(RoomID: string): Game {
         masus: Masus,
         koma: Komas,
         nowUser: null,
+        CubeNumber: 3,
     };
     return game;
+}
+
+// Cube
+function roll(g: Game, num: number): Game {
+    // random number 1~6
+    const random = Math.floor(Math.random() * 6) + 1;
+    g.CubeNumber = random;
+    return g;
 }
 
 // Player
@@ -53,7 +62,7 @@ function komaDeath(g: Game, koma: number) {
     g.koma[koma].Position = g.koma[koma]._spawnMasu;
 }
 
-export { gameCreate, playerJoin, playerLeave, komaMoveTo, komaDeath };
+export { gameCreate, playerJoin, playerLeave, komaMoveTo, komaDeath, roll };
 
 // other
 
