@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import { gameCreate, playerJoin, playerLeave, roll } from "./contro";
+import * as c from "./contro";
 import type { Game } from "../lib/socket";
 
 // Got port form env
@@ -39,7 +39,7 @@ io.on("connection", (socket) => {
 
     // if game not found, create game
     if (!Games.has(GameIndex)) {
-        Games.set(GameIndex, gameCreate(GameIndex));
+        Games.set(GameIndex, c.gameCreate(GameIndex));
         return;
     }
 
@@ -47,28 +47,35 @@ io.on("connection", (socket) => {
     if (Games.get(GameIndex)!.players.length > 3) {
         return;
     }
+    const sync = () => { io.to(GameIndex).emit("update", Games.get(GameIndex)); }
 
     // if game players less than 4, join game
-    Games.set(GameIndex, playerJoin(Games.get(GameIndex)!, socket.id, "test"));
+    Games.set(GameIndex, c.playerJoin(Games.get(GameIndex)!, socket.id, "test"));
 
     // send game data
-    io.to(GameIndex).emit("update", Games.get(GameIndex));
+    sync();
+
+    // sync game data every event
+    socket.onAny(() => {
+        sync()
+    });
 
     socket.on("start", () => {
         console.log("start");
+        c.start(Games.get(GameIndex)!);
     });
 
     socket.on("roll", (data: number) => {
         console.log(data);
-        Games.set(GameIndex, roll(Games.get(GameIndex)!, data));
-        io.to(GameIndex).emit("update", Games.get(GameIndex));
+        Games.set(GameIndex, c.roll(Games.get(GameIndex)!, data));
+        sync();
     });
 
     socket.on("disconnect", () => {
         // remove player
         socket.leave(GameIndex);
-        Games.set(GameIndex, playerLeave(Games.get(GameIndex)!, socket.id));
-        io.to(GameIndex).emit("update", Games.get(GameIndex));
+        Games.set(GameIndex, c.playerLeave(Games.get(GameIndex)!, socket.id));
+        sync();
 
         console.log("user disconnected");
     });

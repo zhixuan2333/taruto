@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { Game, Koma, Masu } from "../lib/socket";
 
 // Game
-function gameCreate(RoomID: string): Game {
+export function gameCreate(RoomID: string): Game {
     const game: Game = {
         id: RoomID,
         name: "test",
@@ -17,8 +17,12 @@ function gameCreate(RoomID: string): Game {
     return game;
 }
 
+export function start(g: Game) {
+    g.nowUser = g.players[0];
+}
+
 // Cube
-function roll(g: Game, num: number): Game {
+export function roll(g: Game, num: number): Game {
     // random number 1~6
     const random = Math.floor(Math.random() * 6) + 1;
     g.CubeNumber = random;
@@ -26,7 +30,7 @@ function roll(g: Game, num: number): Game {
 }
 
 // Player
-function playerJoin(g: Game, socketID: string, name: string): Game {
+export function playerJoin(g: Game, socketID: string, name: string): Game {
     if (g.players.length >= 4) {
         return g;
     }
@@ -39,7 +43,7 @@ function playerJoin(g: Game, socketID: string, name: string): Game {
     return g;
 }
 
-function playerLeave(g: Game, socketID: string): Game {
+export function playerLeave(g: Game, socketID: string): Game {
     const player = g.players.find((p) => p.socketID === socketID);
     if (!player) {
         return g;
@@ -54,16 +58,13 @@ function playerLeave(g: Game, socketID: string): Game {
 // Masu
 
 // Koma
-function komaMoveTo(g: Game, koma: number, masu: number) {
+export function komaMoveTo(g: Game, koma: number, masu: number) {
     g.koma[koma].Position = masu;
 }
 
-function komaDeath(g: Game, koma: number) {
+export function komaDeath(g: Game, koma: number) {
     g.koma[koma].Position = g.koma[koma]._spawnMasu;
 }
-
-export { gameCreate, playerJoin, playerLeave, komaMoveTo, komaDeath, roll };
-
 // other
 
 type setupProps = {

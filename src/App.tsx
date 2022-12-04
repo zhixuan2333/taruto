@@ -196,9 +196,10 @@ function App() {
         const timer = setTimeout(() => {
             setConnected(2);
             socket.disconnect();
-        }, 3000);
+        }, 5000);
 
         socket.on('connect', () => {
+            console.log("connected");
             clearTimeout(timer);
             setConnected(1);
         });
@@ -251,7 +252,10 @@ function App() {
 
                 </>
             ) : (
-                <h1>loading</h1>
+                <>
+                    <h1>loading</h1>
+                    <p>Status: {connected}</p>
+                </>
             )}
         </div>
     );
