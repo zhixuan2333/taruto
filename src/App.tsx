@@ -1,12 +1,11 @@
-import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Canvas, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
 import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
-import { Mesh } from "three";
 import { a, useSpring } from "@react-spring/three";
 import type { Game, Koma, Masu } from "../lib/socket";
 
@@ -112,13 +111,11 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
 }
 
 
-type CubeProps = {
-    CubeNumber: number
+type Props = {
+    g: Game
 };
 
-function Cube({ CubeNumber }: CubeProps) {
-    const [active, setActive] = useState(false);
-
+function Cube({ g }: Props) {
     const random = (): number => { return Math.random() * 4 * Math.PI }
 
     const Faces = new Map<number, number[]>();
@@ -129,33 +126,33 @@ function Cube({ CubeNumber }: CubeProps) {
     Faces.set(5, [0, 0, 0])
     Faces.set(6, [1, 0, 0.5])
 
-    const spring = useSpring({
-        spring: active ? 1 : 0,
-        to: [
-            {
+    const [style, api] = useSpring(() => ({
+        rotationX: 1 * Math.PI,
+        rotationY: 0 * Math.PI,
+        rotationZ: 0.5 * Math.PI,
+        scale: 1,
+    }))
+
+
+    const roll = () => {
+        // tell server to roll this number
+        // then generate next roll number
+        socket.emit("roll", g.CubeNumber);
+
+        api.start({
+            to: [{
                 rotationX: random(),
                 rotationY: random(),
                 rotationZ: random(),
                 scale: 1.5,
-            },
-            {
-                rotationX: Faces.get(CubeNumber)![0] * Math.PI,
-                rotationY: Faces.get(CubeNumber)![1] * Math.PI,
-                rotationZ: Faces.get(CubeNumber)![2] * Math.PI,
+            }, {
+                rotationX: Faces.get(g.CubeNumber)![0] * Math.PI,
+                rotationY: Faces.get(g.CubeNumber)![1] * Math.PI,
+                rotationZ: Faces.get(g.CubeNumber)![2] * Math.PI,
                 scale: 1,
-            },
-        ],
-        from: {
-            rotationX: 1 * Math.PI,
-            rotationY: 0 * Math.PI,
-            rotationZ: 0.5 * Math.PI,
-            scale: 1,
-        },
-        onRest: () => {
-            setActive(false);
-            socket.emit("roll", CubeNumber);
-        }
-    })
+            }],
+        })
+    }
 
     const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
         '/textures/dice_1.jpeg',
@@ -165,18 +162,17 @@ function Cube({ CubeNumber }: CubeProps) {
         '/textures/dice_5.jpeg',
         '/textures/dice_6.jpeg',
     ]);
-    const boxRef = useRef<Mesh>(null!);
 
     return (
         <a.mesh
-            ref={boxRef}
-            rotation-x={spring.rotationX}
-            rotation-y={spring.rotationY}
-            rotation-z={spring.rotationZ}
-            scale-x={spring.scale}
-            scale-z={spring.scale}
-            scale-y={spring.scale}
-            onClick={() => setActive(true)}
+            position={[5, 1, 5]}
+            rotation-x={style.rotationX}
+            rotation-y={style.rotationY}
+            rotation-z={style.rotationZ}
+            scale-x={style.scale}
+            scale-z={style.scale}
+            scale-y={style.scale}
+            onClick={() => roll()}
         >
             <boxGeometry args={[1, 1, 1]} />
             <meshBasicMaterial attach={`material-0`} map={texture_1} />
@@ -191,13 +187,20 @@ function Cube({ CubeNumber }: CubeProps) {
 
 const socket = io("http://localhost:8080");
 
+
 function App() {
+    const [connected, setConnected] = useState(0);  // 1 connected, 2 connect timedout
     const [game, setGame] = useState<Game | null>(null);
 
     useEffect(() => {
-        socket.on('connect', () => {
-            console.log('connected');
+        const timer = setTimeout(() => {
+            setConnected(2);
+            socket.disconnect();
+        }, 3000);
 
+        socket.on('connect', () => {
+            clearTimeout(timer);
+            setConnected(1);
         });
 
         socket.on('disconnect', () => {
@@ -213,6 +216,10 @@ function App() {
             console.log(data);
         })
 
+        return () => {
+            socket.disconnect();
+            clearTimeout(timer);
+        }
     }, []);
 
     const camera = new THREE.PerspectiveCamera();
@@ -235,7 +242,7 @@ function App() {
                             allMasu={game!.masus}
                         />
                         <Suspense fallback={null}>
-                            <Cube CubeNumber={game!.CubeNumber} />
+                            <Cube g={game!} />
                         </Suspense>
 
                         <OrbitControls makeDefault={true} target={[5, 0, 5]} />
