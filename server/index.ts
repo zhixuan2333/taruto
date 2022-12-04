@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import { gameCreate, playerJoin, playerLeave } from "./contro";
+import { gameCreate, playerJoin, playerLeave, roll } from "./contro";
 import type { Game } from "../lib/socket";
 
 // Got port form env
@@ -56,6 +56,12 @@ io.on("connection", (socket) => {
 
     socket.on("start", () => {
         console.log("start");
+    });
+
+    socket.on("roll", (data: number) => {
+        console.log(data);
+        Games.set(GameIndex, roll(Games.get(GameIndex)!, data));
+        io.to(GameIndex).emit("update", Games.get(GameIndex));
     });
 
     socket.on("disconnect", () => {
