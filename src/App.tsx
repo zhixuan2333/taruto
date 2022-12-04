@@ -2,7 +2,7 @@ import React, { Suspense, useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import "./App.css";
 import { Canvas, useLoader } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Html, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
 import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
@@ -133,6 +133,21 @@ function Cube({ g }: Props) {
         scale: 1,
     }))
 
+    socket.on("roll", () => {
+        api.start({
+            to: [{
+                rotationX: random(),
+                rotationY: random(),
+                rotationZ: random(),
+                scale: 1.5,
+            }, {
+                rotationX: Faces.get(g.CubeNumber)![0] * Math.PI,
+                rotationY: Faces.get(g.CubeNumber)![1] * Math.PI,
+                rotationZ: Faces.get(g.CubeNumber)![2] * Math.PI,
+                scale: 1,
+            }],
+        })
+    })
 
     const roll = () => {
         // tell server to roll this number
@@ -186,7 +201,6 @@ function Cube({ g }: Props) {
 };
 
 const socket = io("http://localhost:8080");
-
 
 function App() {
     const [connected, setConnected] = useState(0);  // 1 connected, 2 connect timedout
@@ -242,6 +256,26 @@ function App() {
                             allKoma={game!.koma}
                             allMasu={game!.masus}
                         />
+
+                        {/* a dash board for debug, maybe reuse */}
+                        <Html>
+                            <div>
+
+                                <h1>Dashboard</h1>
+                                <div style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "1px",
+                                }}>
+                                    <span>player size: {game!.players.length}</span>
+                                    <span>Name: {game!.players[0].name}</span>
+                                    <span>Next Roll: {game!.CubeNumber}</span>
+
+                                </div>
+
+                            </div>
+                        </Html>
+
                         <Suspense fallback={null}>
                             <Cube g={game!} />
                         </Suspense>

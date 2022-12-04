@@ -68,7 +68,8 @@ io.on("connection", (socket) => {
     socket.on("roll", (data: number) => {
         console.log(data);
         Games.set(GameIndex, c.roll(Games.get(GameIndex)!, data));
-        sync();
+        io.to(GameIndex).emit("roll");
+
     });
 
     socket.on("disconnect", () => {

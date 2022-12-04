@@ -42,7 +42,9 @@ type Game = {
     masus: Masu[];
     koma: Koma[];
     nowUser: Player | null;
+    // TODO: add nextCubeNumber
     CubeNumber: number;
+    // nextCubeNumber: number;
 };
 
 export type { Masu, Player, Koma, Game };
