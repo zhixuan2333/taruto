@@ -210,7 +210,7 @@ function App() {
         const timer = setTimeout(() => {
             setConnected(2);
             socket.disconnect();
-        }, 5000);
+        }, 10000);
 
         socket.on('connect', () => {
             console.log("connected");
