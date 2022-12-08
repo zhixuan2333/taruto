@@ -1,60 +1,60 @@
 {
-    "name": "taruto",
-    "version": "0.1.0",
-    "private": true,
-    "repository": "https://github.com/zhixuan2333/taruto",
-    "author": "https://github.com/zhixuan2333",
-    "license": "MIT",
-    "dependencies": {
-        "@react-three/drei": "^9.17.3",
-        "@react-three/fiber": "^8.2.2",
-        "@testing-library/jest-dom": "^5.16.4",
-        "@testing-library/react": "^13.3.0",
-        "@testing-library/user-event": "^13.5.0",
-        "@types/jest": "^27.5.2",
-        "@types/node": "^16.11.45",
-        "@types/react": "^18.0.15",
-        "@types/react-dom": "^18.0.6",
-        "@types/three": "^0.142.0",
-        "nodemon": "^2.0.20",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-scripts": "5.0.1",
-        "react-spring": "^9.5.5",
-        "socket.io": "^4.5.3",
-        "socket.io-client": "^4.5.1",
-        "three": "^0.142.0",
-        "typescript": "^4.7.4",
-        "web-vitals": "^2.1.4"
-    },
-    "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "server": "serve -s build",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject",
-        "server:start": "nodemon"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
-    },
-    "optionalDependencies": {
-        "bufferutil": "^4.0.7",
-        "utf-8-validate": "^5.0.10"
-    }
+  "name": "taruto",
+  "version": "0.1.0",
+  "private": true,
+  "repository": "https://github.com/zhixuan2333/taruto",
+  "author": "https://github.com/zhixuan2333",
+  "license": "MIT",
+  "dependencies": {
+    "@react-three/drei": "^9.17.3",
+    "@react-three/fiber": "^8.2.2",
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.11.45",
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "@types/three": "^0.142.0",
+    "nodemon": "^2.0.20",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "react-spring": "^9.5.5",
+    "socket.io": "^4.5.3",
+    "socket.io-client": "^4.5.1",
+    "three": "^0.142.0",
+    "typescript": "^4.7.4",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "server": "serve -s build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "server:start": "nodemon"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.7",
+    "utf-8-validate": "^5.0.10"
+  }
 }
