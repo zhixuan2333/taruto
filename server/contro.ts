@@ -13,16 +13,17 @@ export function gameCreate(RoomID: string): Game {
         koma: Komas,
         nowUser: null,
         CubeNumber: 3,
+        nowSelectKoma: null,
     };
     return game;
 }
 
 export function start(g: Game) {
-    g.nowUser = g.players[0];
+    g.nowUser = 0;
 }
 
 // Cube
-export function roll(g: Game, num: number): Game {
+export function roll(g: Game): Game {
     // random number 1~6
     const random = Math.floor(Math.random() * 6) + 1;
     g.CubeNumber = random;
@@ -48,7 +49,7 @@ export function playerLeave(g: Game, socketID: string): Game {
     if (!player) {
         return g;
     }
-    if (g.nowUser === player) {
+    if (g.nowUser === player.id) {
         g.nowUser = null;
     }
     g.players = g.players.filter((p) => p.socketID !== socketID);

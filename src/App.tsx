@@ -150,6 +150,9 @@ function Cube({ g }: Props) {
     })
 
     const roll = () => {
+        if (g.nowUser === null) return;
+        if (g.players[g.nowUser].socketID !== socket.id) return;
+
         // tell server to roll this number
         // then generate next roll number
         socket.emit("roll", g.CubeNumber);
@@ -213,7 +216,7 @@ function App() {
         }, 10000);
 
         socket.on('connect', () => {
-            console.log("connected");
+            console.log("connected", socket.id);
             clearTimeout(timer);
             setConnected(1);
         });
@@ -228,7 +231,7 @@ function App() {
 
         socket.on('update', (data: Game) => {
             setGame(data);
-            console.log(data);
+            console.log({ data });
         })
 
         return () => {
@@ -270,6 +273,7 @@ function App() {
                                     <span>player size: {game!.players.length}</span>
                                     <span>Name: {game!.players[0].name}</span>
                                     <span>Next Roll: {game!.CubeNumber}</span>
+                                    <button onClick={() => socket.emit("start")}>Start Game</button>
 
                                 </div>
 
@@ -296,3 +300,4 @@ function App() {
 }
 
 export default App;
+

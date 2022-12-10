@@ -40,7 +40,6 @@ io.on("connection", (socket) => {
     // if game not found, create game
     if (!Games.has(GameIndex)) {
         Games.set(GameIndex, c.gameCreate(GameIndex));
-        return;
     }
 
     // if game players more than 4, disconnect
@@ -63,11 +62,14 @@ io.on("connection", (socket) => {
     socket.on("start", () => {
         console.log("start");
         c.start(Games.get(GameIndex)!);
+        sync();
     });
 
     socket.on("roll", (data: number) => {
         console.log(data);
-        Games.set(GameIndex, c.roll(Games.get(GameIndex)!, data));
+        Games.set(GameIndex, c.roll(Games.get(GameIndex)!));
+        sync();
+        
         io.to(GameIndex).emit("roll");
 
     });
@@ -95,3 +97,4 @@ io.on("disconnect", (socket) => {
     // }
     console.log("user disconnected");
 });
+

@@ -41,10 +41,14 @@ type Game = {
     players: Player[];
     masus: Masu[];
     koma: Koma[];
-    nowUser: Player | null;
+    nowUser: number | null;
     // TODO: add nextCubeNumber
     CubeNumber: number;
     // nextCubeNumber: number;
+
+    // nowSelectKoma if is null is select cube
+    // if is number is select koma
+    nowSelectKoma: number | null;
 };
 
 export type { Masu, Player, Koma, Game };
