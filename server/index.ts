@@ -61,6 +61,8 @@ io.on("connection", (socket) => {
 
     socket.on("start", () => {
         console.log("start");
+        // TODO: check if state is not 0, return
+        
         c.start(Games.get(GameIndex)!);
         sync();
     });

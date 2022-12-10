@@ -22,7 +22,6 @@ export function gameCreate(RoomID: string): Game {
 export function start(g: Game) {
     g.nowUser = 0;
     g.nowState = 100;
-    g.CubeNumber = 1;
     return g;
 }
 
