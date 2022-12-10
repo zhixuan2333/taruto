@@ -12,7 +12,7 @@ export function gameCreate(RoomID: string): Game {
         masus: Masus,
         koma: Komas,
         nowUser: null,
-        CubeNumber: 0,
+        CubeNumber: 1,
         nowSelectKoma: null,
         nowState: 0,
     };

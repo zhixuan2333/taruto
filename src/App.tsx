@@ -116,15 +116,16 @@ type Props = {
 };
 
 function Cube({ g }: Props) {
+    // loading textures
+    const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
+        '/textures/dice_1.jpeg',
+        '/textures/dice_2.jpeg',
+        '/textures/dice_3.jpeg',
+        '/textures/dice_4.jpeg',
+        '/textures/dice_5.jpeg',
+        '/textures/dice_6.jpeg',
+    ]);
     const random = (): number => { return Math.random() * 4 * Math.PI }
-
-    const Faces = new Map<number, number[]>();
-    Faces.set(1, [0, 0, 0.5])
-    Faces.set(2, [0, 0, 1])
-    Faces.set(3, [0.5, 1, 0])
-    Faces.set(4, [0.5, 0, 0])
-    Faces.set(5, [0, 0, 0])
-    Faces.set(6, [1, 0, 0.5])
 
     const [style, api] = useSpring(() => ({
         rotationX: 1 * Math.PI,
@@ -133,30 +134,14 @@ function Cube({ g }: Props) {
         scale: 1,
     }))
 
-    socket.on("roll", (data: Game) => {
-        api.start({
-            to: [{
-                rotationX: random(),
-                rotationY: random(),
-                rotationZ: random(),
-                scale: 1.5,
-            }, {
-                rotationX: Faces.get(data.CubeNumber)![0] * Math.PI,
-                rotationY: Faces.get(data.CubeNumber)![1] * Math.PI,
-                rotationZ: Faces.get(data.CubeNumber)![2] * Math.PI,
-                scale: 1,
-            }],
-        })
-    })
-    
-
-    const roll = () => {
-        if (g.nowUser === null) return;
-        if (g.players[g.nowUser].socketID !== socket.id) return;
-
-        // tell server to roll this number
-        // then generate next roll number
-        socket.emit("roll", g.CubeNumber);
+    useEffect(() => {
+        const Faces = new Map<number, number[]>();
+        Faces.set(1, [0, 0, 0.5])
+        Faces.set(2, [0, 0, 1])
+        Faces.set(3, [0.5, 1, 0])
+        Faces.set(4, [0.5, 0, 0])
+        Faces.set(5, [0, 0, 0])
+        Faces.set(6, [1, 0, 0.5])
 
         api.start({
             to: [{
@@ -171,17 +156,16 @@ function Cube({ g }: Props) {
                 scale: 1,
             }],
         })
+
+    }, [api, g.CubeNumber])
+
+    const roll = () => {
+        if (g.nowUser === null) return;
+        if (g.players[g.nowUser].socketID !== socket.id) return;
+
+        // tell server to roll dice
+        socket.emit("roll");
     }
-
-    const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
-        '/textures/dice_1.jpeg',
-        '/textures/dice_2.jpeg',
-        '/textures/dice_3.jpeg',
-        '/textures/dice_4.jpeg',
-        '/textures/dice_5.jpeg',
-        '/textures/dice_6.jpeg',
-    ]);
-
     return (
         <a.mesh
             position={[5, 1, 5]}

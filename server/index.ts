@@ -67,11 +67,9 @@ io.on("connection", (socket) => {
 
     socket.on("roll", () => {
         Games.set(GameIndex, c.roll(Games.get(GameIndex)!));
-        sync();
-        io.to(GameIndex).emit("roll", Games.get(GameIndex));
-
         // State 100 -> 101
         // Games.set(GameIndex, c.ChangeState(Games.get(GameIndex)!, 101));
+        sync();
     });
 
     socket.on("disconnect", () => {
