@@ -75,7 +75,7 @@ export function komaMove(g: Game, koma:number, step: number): Game {
     let nextMasu = g.koma[koma].Position;
     for (let i = 0; i < step; i++) {
         // if true point is goal
-        if (g.masus[nextMasu]._type === 2 
+        if (g.masus[nextMasu]._type === 2
             && g.masus[nextMasu].GoalPlayer === g.koma[koma].owner) {
 
             // set koma is in goal point
