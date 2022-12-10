@@ -72,12 +72,39 @@ export function playerLeave(g: Game, socketID: string): Game {
 // Masu
 
 // Koma
-export function komaMoveTo(g: Game, koma: number, masu: number) {
-    g.koma[koma].Position = masu;
+export function komaMove(g: Game, koma:number, step: number): Game {
+    let nextMasu = g.koma[koma].Position;
+    for (let i = 0; i < step; i++) {
+        // if true point is goal
+        if (g.masus[nextMasu]._type === 2 
+            && g.masus[nextMasu].GoalPlayer === g.koma[koma].owner) {
+
+            // set koma is in goal point
+            g.koma[koma].isGoal = true;
+            // set koma position to goal point
+            nextMasu = g.masus[nextMasu]._nextForGoal!;
+            continue;
+        }
+
+        // Because there is no next point
+        if (g.masus[nextMasu]._next === null) {
+            break;
+        }
+        // normal logic
+        nextMasu = g.masus[nextMasu]._next!;
+    }
+    g.koma[koma].Position = nextMasu;
+    return g;
 }
 
-export function komaDeath(g: Game, koma: number) {
+export function komaMoveTo(g: Game, koma: number, masu: number): Game {
+    g.koma[koma].Position = masu;
+    return g;
+}
+
+export function komaDeath(g: Game, koma: number) :Game {
     g.koma[koma].Position = g.koma[koma]._spawnMasu;
+    return g;
 }
 // other
 
