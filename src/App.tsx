@@ -133,7 +133,7 @@ function Cube({ g }: Props) {
         scale: 1,
     }))
 
-    socket.on("roll", () => {
+    socket.on("roll", (data: Game) => {
         api.start({
             to: [{
                 rotationX: random(),
@@ -141,13 +141,14 @@ function Cube({ g }: Props) {
                 rotationZ: random(),
                 scale: 1.5,
             }, {
-                rotationX: Faces.get(g.CubeNumber)![0] * Math.PI,
-                rotationY: Faces.get(g.CubeNumber)![1] * Math.PI,
-                rotationZ: Faces.get(g.CubeNumber)![2] * Math.PI,
+                rotationX: Faces.get(data.CubeNumber)![0] * Math.PI,
+                rotationY: Faces.get(data.CubeNumber)![1] * Math.PI,
+                rotationZ: Faces.get(data.CubeNumber)![2] * Math.PI,
                 scale: 1,
             }],
         })
     })
+    
 
     const roll = () => {
         if (g.nowUser === null) return;

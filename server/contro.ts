@@ -12,21 +12,34 @@ export function gameCreate(RoomID: string): Game {
         masus: Masus,
         koma: Komas,
         nowUser: null,
-        CubeNumber: 3,
+        CubeNumber: 0,
         nowSelectKoma: null,
+        nowState: 0,
     };
     return game;
 }
 
 export function start(g: Game) {
     g.nowUser = 0;
+    g.nowState = 100;
+    g.CubeNumber = 1;
+    return g;
+}
+
+export function ChangeState(g: Game, state: number) {
+    g.nowState = state;
+    return g;
 }
 
 // Cube
-export function roll(g: Game): Game {
+function randomCube(): number {
     // random number 1~6
     const random = Math.floor(Math.random() * 6) + 1;
-    g.CubeNumber = random;
+    return random;
+}
+
+export function roll(g: Game): Game {
+    g.CubeNumber = randomCube();
     return g;
 }
 

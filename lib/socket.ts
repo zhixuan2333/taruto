@@ -42,10 +42,16 @@ type Game = {
     masus: Masu[];
     koma: Koma[];
     nowUser: number | null;
-    // TODO: add nextCubeNumber
-    CubeNumber: number;
-    // nextCubeNumber: number;
 
+    // nowState
+    // -1: game end
+    // 0: game not start
+    // 100: Cube roll
+    // 101: Koma move
+    // 102: Koma move and Cube roll
+    nowState: number;
+
+    CubeNumber: number;
     // nowSelectKoma if is null is select cube
     // if is number is select koma
     nowSelectKoma: number | null;
