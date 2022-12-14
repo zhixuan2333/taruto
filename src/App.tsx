@@ -82,6 +82,7 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
             switch (allKoma[i].owner) {
                 case 0: {
                     ref.current.setColorAt(i, new THREE.Color(0x00ff00));
+                    ref.current.material = new THREE.MeshPhongMaterial({ color: new THREE.Color(7, 0, 0.5), toneMapped: false });
                     break;
                 }
                 case 1: {
