@@ -64,25 +64,26 @@ type KomaProps = {
     allMasu: Masu[];
     allKoma: Koma[];
 };
-function Komas({ temp, allMasu, allKoma }: KomaProps) {
+function Komas({ g }: Props) {
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
+    const temp = new THREE.Object3D();
     useEffect(() => {
         // Set positions
-        for (let i = 0; i < allKoma.length; i++) {
+        for (let i = 0; i < g.koma.length; i++) {
             temp.position.set(
-                allMasu[allKoma[i].Position].Position.x,
+                g.masus[g.koma[i].Position].Position.x,
                 0.2,
-                allMasu[allKoma[i].Position].Position.z
+                g.masus[g.koma[i].Position].Position.z
             );
             temp.updateMatrix();
 
             ref.current.setMatrixAt(i, temp.matrix);
 
-            switch (allKoma[i].owner) {
+
+            switch (g.koma[i].owner) {
                 case 0: {
                     ref.current.setColorAt(i, new THREE.Color(0x00ff00));
-                    ref.current.material = new THREE.MeshPhongMaterial({ color: new THREE.Color(7, 0, 0.5), toneMapped: false });
                     break;
                 }
                 case 1: {
@@ -98,13 +99,18 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
                     break;
                 }
             }
+            if (i === g.nowSelectKoma) {
+                debugger;
+                ref.current.setColorAt(i, new THREE.Color(0xffffff));
+            }
+
         }
         // Update the instance
         ref.current.instanceMatrix.needsUpdate = true;
-    }, [allKoma, allMasu, temp]);
+    }, [g, temp]);
 
     return (
-        <instancedMesh ref={ref} args={[undefined, undefined, allKoma.length]}>
+        <instancedMesh ref={ref} args={[undefined, undefined, g.koma.length]}>
             <boxGeometry args={[0.4, 0.1, 0.4]} />
             <meshPhongMaterial ref={shaderRef} />
         </instancedMesh>
@@ -168,6 +174,7 @@ function Cube({ g }: Props) {
         socket.emit("roll");
     }
     return (
+
         <a.mesh
             position={[5, 1, 5]}
             rotation-x={style.rotationX}
@@ -226,6 +233,7 @@ function App() {
         }
     }, []);
 
+
     const camera = new THREE.PerspectiveCamera();
     camera.position.x = 15;
     camera.position.y = 10;
@@ -235,15 +243,13 @@ function App() {
         <div style={{ width: "100vw", height: "100vh" }}>
             {game !== null ? (
                 <>
+
                     <Canvas camera={camera}>
                         <ambientLight />
                         <pointLight position={[10, 10, 10]} />
-
                         <Maps temp={new THREE.Object3D()} allMasu={game!.masus} />
                         <Komas
-                            temp={new THREE.Object3D()}
-                            allKoma={game!.koma}
-                            allMasu={game!.masus}
+                            g={game}
                         />
 
                         {/* a dash board for debug, maybe reuse */}
@@ -259,6 +265,7 @@ function App() {
                                     <span>player size: {game!.players.length}</span>
                                     <span>Name: {game!.players[0].name}</span>
                                     <span>Next Roll: {game!.CubeNumber}</span>
+                                    <span>Next select Koma: {game!.nowSelectKoma}</span>
                                     <button onClick={() => socket.emit("start")}>Start Game</button>
 
                                 </div>
