@@ -5,7 +5,7 @@ import { Canvas, useLoader } from "@react-three/fiber";
 import { Html, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
-import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
+import { TextureLoader } from "three/src/loaders/TextureLoader.js";
 import { a, useSpring } from "@react-spring/three";
 import type { Game, Koma, Masu } from "../lib/socket";
 
@@ -64,22 +64,23 @@ type KomaProps = {
     allMasu: Masu[];
     allKoma: Koma[];
 };
-function Komas({ temp, allMasu, allKoma }: KomaProps) {
+function Komas({ g }: Props) {
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
+    const temp = new THREE.Object3D();
     useEffect(() => {
         // Set positions
-        for (let i = 0; i < allKoma.length; i++) {
+        for (let i = 0; i < g.koma.length; i++) {
             temp.position.set(
-                allMasu[allKoma[i].Position].Position.x,
+                g.masus[g.koma[i].Position].Position.x,
                 0.2,
-                allMasu[allKoma[i].Position].Position.z
+                g.masus[g.koma[i].Position].Position.z
             );
             temp.updateMatrix();
 
             ref.current.setMatrixAt(i, temp.matrix);
 
-            switch (allKoma[i].owner) {
+            switch (g.koma[i].owner) {
                 case 0: {
                     ref.current.setColorAt(i, new THREE.Color(0x00ff00));
                     break;
@@ -97,67 +98,78 @@ function Komas({ temp, allMasu, allKoma }: KomaProps) {
                     break;
                 }
             }
+            if (i === g.nowSelectKoma) {
+                debugger;
+                ref.current.setColorAt(i, new THREE.Color(0xffffff));
+            }
         }
+
         // Update the instance
         ref.current.instanceMatrix.needsUpdate = true;
-    }, [allKoma, allMasu, temp]);
+        if (ref.current.instanceColor)
+            ref.current.instanceColor.needsUpdate = true;
+    }, [g, temp]);
 
     return (
-        <instancedMesh ref={ref} args={[undefined, undefined, allKoma.length]}>
+        <instancedMesh ref={ref} args={[undefined, undefined, g.koma.length]}>
             <boxGeometry args={[0.4, 0.1, 0.4]} />
             <meshPhongMaterial ref={shaderRef} />
         </instancedMesh>
     );
 }
 
-
 type Props = {
-    g: Game
+    g: Game;
 };
 
 function Cube({ g }: Props) {
     // loading textures
-    const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] = useLoader(TextureLoader, [
-        '/textures/dice_1.jpeg',
-        '/textures/dice_2.jpeg',
-        '/textures/dice_3.jpeg',
-        '/textures/dice_4.jpeg',
-        '/textures/dice_5.jpeg',
-        '/textures/dice_6.jpeg',
-    ]);
-    const random = (): number => { return Math.random() * 4 * Math.PI }
+    const [texture_1, texture_2, texture_3, texture_4, texture_5, texture_6] =
+        useLoader(TextureLoader, [
+            "/textures/dice_1.jpeg",
+            "/textures/dice_2.jpeg",
+            "/textures/dice_3.jpeg",
+            "/textures/dice_4.jpeg",
+            "/textures/dice_5.jpeg",
+            "/textures/dice_6.jpeg",
+        ]);
+    const random = (): number => {
+        return Math.random() * 4 * Math.PI;
+    };
 
     const [style, api] = useSpring(() => ({
         rotationX: 1 * Math.PI,
         rotationY: 0 * Math.PI,
         rotationZ: 0.5 * Math.PI,
         scale: 1,
-    }))
+    }));
 
     useEffect(() => {
         const Faces = new Map<number, number[]>();
-        Faces.set(1, [0, 0, 0.5])
-        Faces.set(2, [0, 0, 1])
-        Faces.set(3, [0.5, 1, 0])
-        Faces.set(4, [0.5, 0, 0])
-        Faces.set(5, [0, 0, 0])
-        Faces.set(6, [1, 0, 0.5])
+        Faces.set(1, [0, 0, 0.5]);
+        Faces.set(2, [0, 0, 1]);
+        Faces.set(3, [0.5, 1, 0]);
+        Faces.set(4, [0.5, 0, 0]);
+        Faces.set(5, [0, 0, 0]);
+        Faces.set(6, [1, 0, 0.5]);
 
         api.start({
-            to: [{
-                rotationX: random(),
-                rotationY: random(),
-                rotationZ: random(),
-                scale: 1.5,
-            }, {
-                rotationX: Faces.get(g.CubeNumber)![0] * Math.PI,
-                rotationY: Faces.get(g.CubeNumber)![1] * Math.PI,
-                rotationZ: Faces.get(g.CubeNumber)![2] * Math.PI,
-                scale: 1,
-            }],
-        })
-
-    }, [api, g.CubeNumber])
+            to: [
+                {
+                    rotationX: random(),
+                    rotationY: random(),
+                    rotationZ: random(),
+                    scale: 1.5,
+                },
+                {
+                    rotationX: Faces.get(g.CubeNumber)![0] * Math.PI,
+                    rotationY: Faces.get(g.CubeNumber)![1] * Math.PI,
+                    rotationZ: Faces.get(g.CubeNumber)![2] * Math.PI,
+                    scale: 1,
+                },
+            ],
+        });
+    }, [api, g.CubeNumber]);
 
     const roll = () => {
         if (g.nowUser === null) return;
@@ -165,7 +177,7 @@ function Cube({ g }: Props) {
 
         // tell server to roll dice
         socket.emit("roll");
-    }
+    };
     return (
         <a.mesh
             position={[5, 1, 5]}
@@ -186,12 +198,12 @@ function Cube({ g }: Props) {
             <meshBasicMaterial attach={`material-1`} map={texture_6} />
         </a.mesh>
     );
-};
+}
 
 const socket = io("http://localhost:8080");
 
 function App() {
-    const [connected, setConnected] = useState(0);  // 1 connected, 2 connect timedout
+    const [connected, setConnected] = useState(0); // 1 connected, 2 connect timedout
     const [game, setGame] = useState<Game | null>(null);
 
     useEffect(() => {
@@ -200,29 +212,29 @@ function App() {
             socket.disconnect();
         }, 10000);
 
-        socket.on('connect', () => {
+        socket.on("connect", () => {
             console.log("connected", socket.id);
             clearTimeout(timer);
             setConnected(1);
         });
 
-        socket.on('disconnect', () => {
-            console.log('disconnected');
+        socket.on("disconnect", () => {
+            console.log("disconnected");
         });
 
-        socket.on('message', (data: any) => {
+        socket.on("message", (data: any) => {
             console.log(data);
-        })
+        });
 
-        socket.on('update', (data: Game) => {
+        socket.on("update", (data: Game) => {
             setGame(data);
             console.log({ data });
-        })
+        });
 
         return () => {
             socket.disconnect();
             clearTimeout(timer);
-        }
+        };
     }, []);
 
     const camera = new THREE.PerspectiveCamera();
@@ -237,31 +249,37 @@ function App() {
                     <Canvas camera={camera}>
                         <ambientLight />
                         <pointLight position={[10, 10, 10]} />
-
-                        <Maps temp={new THREE.Object3D()} allMasu={game!.masus} />
-                        <Komas
+                        <Maps
                             temp={new THREE.Object3D()}
-                            allKoma={game!.koma}
                             allMasu={game!.masus}
                         />
+                        <Komas g={game} />
 
                         {/* a dash board for debug, maybe reuse */}
                         <Html>
                             <div>
-
                                 <h1>Dashboard</h1>
-                                <div style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "1px",
-                                }}>
-                                    <span>player size: {game!.players.length}</span>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "1px",
+                                    }}
+                                >
+                                    <span>
+                                        player size: {game!.players.length}
+                                    </span>
                                     <span>Name: {game!.players[0].name}</span>
                                     <span>Next Roll: {game!.CubeNumber}</span>
-                                    <button onClick={() => socket.emit("start")}>Start Game</button>
-
+                                    <span>
+                                        Next select Koma: {game!.nowSelectKoma}
+                                    </span>
+                                    <button
+                                        onClick={() => socket.emit("start")}
+                                    >
+                                        Start Game
+                                    </button>
                                 </div>
-
                             </div>
                         </Html>
 
@@ -272,7 +290,6 @@ function App() {
                         <OrbitControls makeDefault={true} target={[5, 0, 5]} />
                         <axesHelper />
                     </Canvas>
-
                 </>
             ) : (
                 <>
@@ -285,4 +302,3 @@ function App() {
 }
 
 export default App;
-

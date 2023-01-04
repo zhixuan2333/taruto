@@ -15,6 +15,7 @@ export function gameCreate(RoomID: string): Game {
         CubeNumber: 1,
         nowSelectKoma: null,
         nowState: 0,
+        ableSelectKoma: [],
     };
     return game;
 }
@@ -27,6 +28,16 @@ export function start(g: Game) {
 
 export function ChangeState(g: Game, state: number) {
     g.nowState = state;
+    return g;
+}
+
+export function setAbleSelectKoma(g: Game, koma: number[]) {
+    g.ableSelectKoma = koma;
+    return g;
+}
+
+export function setNowSelectKoma(g: Game, koma: number | null) {
+    g.nowSelectKoma = koma;
     return g;
 }
 
@@ -75,7 +86,7 @@ export function komaMove(g: Game, koma:number, step: number): Game {
     let nextMasu = g.koma[koma].Position;
     for (let i = 0; i < step; i++) {
         // if true point is goal
-        if (g.masus[nextMasu]._type === 2 
+        if (g.masus[nextMasu]._type === 2
             && g.masus[nextMasu].GoalPlayer === g.koma[koma].owner) {
 
             // set koma is in goal point

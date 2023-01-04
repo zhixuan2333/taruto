@@ -55,6 +55,7 @@ type Game = {
     // nowSelectKoma if is null is select cube
     // if is number is select koma
     nowSelectKoma: number | null;
+    ableSelectKoma: number[];
 };
 
 export type { Masu, Player, Koma, Game };

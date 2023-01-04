@@ -5,6 +5,7 @@ import type { Game } from "../lib/socket";
 // Got port form env
 const port = parseInt(process.env.PORT || "", 10) || 8080;
 
+
 const io = new Server(port, {
     /* options */
     cors: {
@@ -15,6 +16,7 @@ const io = new Server(port, {
         credentials: true,
     },
 });
+
 
 console.log("Server started on port 8080");
 
@@ -62,13 +64,36 @@ io.on("connection", (socket) => {
     socket.on("start", () => {
         console.log("start");
         // TODO: check if state is not 0, return
-        
+
         c.start(Games.get(GameIndex)!);
         sync();
     });
 
     socket.on("roll", () => {
         Games.set(GameIndex, c.roll(Games.get(GameIndex)!));
+        //filter nowPlayerKomas
+        const nowPlayerKomas = Games.get(GameIndex)!.koma.filter((k) => {
+            return k.owner == Games.get(GameIndex)!.nowUser;
+        });
+        // filter koma not in goal
+        const nowPlayerKomasInGoal = nowPlayerKomas.filter((k) => {
+            return !k.isGoal;
+        });
+        // if roll is 6, return
+        if (Games.get(GameIndex)!.CubeNumber == 6) {
+            Games.set(GameIndex, c.setAbleSelectKoma(Games.get(GameIndex)!, nowPlayerKomasInGoal.map((k) => k.id)));
+            Games.set(GameIndex, c.setNowSelectKoma(Games.get(GameIndex)!, Games.get(GameIndex)!.ableSelectKoma[0]));
+            sync();
+            return;
+        }
+        // filter koma not in spawnmasu
+        const nowPlayerKomasInSpawnmasu = nowPlayerKomasInGoal.filter((k) => {
+            return (k.Position != k._spawnMasu);
+        });
+
+        Games.set(GameIndex, c.setAbleSelectKoma(Games.get(GameIndex)!, nowPlayerKomasInSpawnmasu.map((k) => k.id)));
+        Games.set(GameIndex, c.setNowSelectKoma(Games.get(GameIndex)!, Games.get(GameIndex)!.ableSelectKoma[0]));
+
         // State 100 -> 101
         // Games.set(GameIndex, c.ChangeState(Games.get(GameIndex)!, 101));
         sync();
@@ -97,4 +122,3 @@ io.on("disconnect", (socket) => {
     // }
     console.log("user disconnected");
 });
-
