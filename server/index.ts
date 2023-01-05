@@ -37,7 +37,7 @@ io.on("connection", (socket) => {
     }
 
     // find game index
-    let GameIndex = "000-000-000";
+    const GameIndex = "000-000-000";
 
     // if game not found, create game
     if (!Games.has(GameIndex)) {
@@ -49,6 +49,10 @@ io.on("connection", (socket) => {
         return;
     }
     const sync = () => { io.to(GameIndex).emit("update", Games.get(GameIndex)); }
+    const syncWithGame = (g: Game) => { 
+        Games.set(GameIndex, g);
+        io.to(GameIndex).emit("update", Games.get(GameIndex));
+    }
 
     // if game players less than 4, join game
     Games.set(GameIndex, c.playerJoin(Games.get(GameIndex)!, socket.id, "test"));
@@ -65,38 +69,69 @@ io.on("connection", (socket) => {
         console.log("start");
         // TODO: check if state is not 0, return
 
-        c.start(Games.get(GameIndex)!);
+        Games.set(GameIndex, c.start(Games.get(GameIndex)!));
         sync();
     });
 
     socket.on("roll", () => {
-        Games.set(GameIndex, c.roll(Games.get(GameIndex)!));
-        //filter nowPlayerKomas
-        const nowPlayerKomas = Games.get(GameIndex)!.koma.filter((k) => {
-            return k.owner == Games.get(GameIndex)!.nowUser;
+        let g = Games.get(GameIndex);
+        if (g === undefined) { return; }
+
+        g = c.roll(g)
+        // now Player Komas
+        const nowPlayerKomas = g.koma.filter((k) => {
+            if (g === undefined) { return false; }
+            return k.owner === g.nowUser;
         });
-        // filter koma not in goal
+        // filter if koma is not in goal
         const nowPlayerKomasInGoal = nowPlayerKomas.filter((k) => {
             return !k.isGoal;
         });
         // if roll is 6, return
-        if (Games.get(GameIndex)!.CubeNumber == 6) {
-            Games.set(GameIndex, c.setAbleSelectKoma(Games.get(GameIndex)!, nowPlayerKomasInGoal.map((k) => k.id)));
-            Games.set(GameIndex, c.setNowSelectKoma(Games.get(GameIndex)!, Games.get(GameIndex)!.ableSelectKoma[0]));
-            sync();
+        if (g.CubeNumber === 6) {
+            g = c.setAbleSelectKoma(g, nowPlayerKomasInGoal.map((k) => k.id));
+            g = c.setNowSelectKoma(g, g.ableSelectKoma[0]);
+            syncWithGame(g);
             return;
         }
         // filter koma not in spawnmasu
         const nowPlayerKomasInSpawnmasu = nowPlayerKomasInGoal.filter((k) => {
-            return (k.Position != k._spawnMasu);
+            return (k.Position !== k._spawnMasu);
         });
-
-        Games.set(GameIndex, c.setAbleSelectKoma(Games.get(GameIndex)!, nowPlayerKomasInSpawnmasu.map((k) => k.id)));
-        Games.set(GameIndex, c.setNowSelectKoma(Games.get(GameIndex)!, Games.get(GameIndex)!.ableSelectKoma[0]));
+        g = c.setAbleSelectKoma(g, nowPlayerKomasInSpawnmasu.map((k) => k.id));
+        g = c.setNowSelectKoma(g, g.ableSelectKoma[0]);
 
         // State 100 -> 101
         // Games.set(GameIndex, c.ChangeState(Games.get(GameIndex)!, 101));
-        sync();
+
+        syncWithGame(g);
+    });
+
+    socket.on("select", (data: number) => {
+        // TODO: WIP
+        let g = Games.get(GameIndex);
+        if (g === undefined) { return; }
+
+        if (g.nowSelectKoma === null) { return; }
+        // if not able select koma, return
+        // 0: comfirm
+        // 1: next koma
+        // 2: prev koma
+
+        switch (data) {
+            case 0:
+                // Koma went to next step
+                g = c.komaMove(g, g.nowSelectKoma, g.CubeNumber);
+                break;
+
+            case 1:
+                // next koma
+                g = c.setNowSelectKoma(g, g.ableSelectKoma[0]);
+                break;
+            case -1:
+                // prev koma
+                
+        }
     });
 
     socket.on("disconnect", () => {

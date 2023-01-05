@@ -7,7 +7,7 @@ import * as THREE from "three";
 
 import { TextureLoader } from "three/src/loaders/TextureLoader.js";
 import { a, useSpring } from "@react-spring/three";
-import type { Game, Koma, Masu } from "../lib/socket";
+import type { Game, Masu } from "../lib/socket";
 
 type MapProps = {
     temp: THREE.Object3D;
@@ -59,11 +59,6 @@ function Maps({ temp, allMasu }: MapProps) {
     );
 }
 
-type KomaProps = {
-    temp: THREE.Object3D;
-    allMasu: Masu[];
-    allKoma: Koma[];
-};
 function Komas({ g }: Props) {
     const ref = useRef<THREE.InstancedMesh>(null!);
     const shaderRef = useRef<THREE.MeshPhongMaterial>(null!);
@@ -279,6 +274,30 @@ function App() {
                                     >
                                         Start Game
                                     </button>
+                                    <div>
+                                        {/* 3 buttom: select now koma, next Koma, Prev Koma */}
+                                        <button
+                                            onClick={() => {
+                                                socket.emit("select", 0);
+                                            }}
+                                        >
+                                            Select
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                socket.emit("select", 1);
+                                            }}
+                                        >
+                                            Next
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                socket.emit("select", -1);
+                                            }}
+                                        >
+                                            Prev
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </Html>
