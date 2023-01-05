@@ -49,7 +49,7 @@ io.on("connection", (socket) => {
         return;
     }
     const sync = () => { io.to(GameIndex).emit("update", Games.get(GameIndex)); }
-    const syncWithGame = (g: Game) => { 
+    const syncWithGame = (g: Game) => {
         Games.set(GameIndex, g);
         io.to(GameIndex).emit("update", Games.get(GameIndex));
     }
@@ -130,7 +130,7 @@ io.on("connection", (socket) => {
                 break;
             case -1:
                 // prev koma
-                
+
         }
     });
 
