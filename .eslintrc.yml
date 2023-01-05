@@ -18,3 +18,6 @@ rules:
     react/no-unknown-property:
       [2, { ignore: ["position", "args", "ref", "attach", "map"] }],
   }
+ignorePatterns:
+  - build/**
+  - node_modules/**
