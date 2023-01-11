@@ -230,7 +230,7 @@ function setup (): setupProps {
       }
 
       // 普通の Masu は-1
-      if (j <= 4 && j >= 1) {
+      if (j <= 4 && j >= 0) {
         masu.GoalPlayer = i - 1
         if (i === 0) {
           masu.GoalPlayer = 3
