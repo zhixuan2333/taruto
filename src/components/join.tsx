@@ -7,7 +7,6 @@ export function Join ({ g, socket }: Props): JSX.Element {
   const [code, setCode] = useState<string>('')
 
   const join = (): void => {
-    // setLoading(true)
     console.log('join', code)
     socket.emit('join', code)
   }
