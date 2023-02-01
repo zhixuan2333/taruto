@@ -1,5 +1,5 @@
 import { Grid, Input } from '@nextui-org/react'
-import { IconSearch } from '@tabler/icons-react'
+import { IconSend } from '@tabler/icons-react'
 import { useState } from 'react'
 import type { Props } from './canvas'
 
@@ -36,9 +36,7 @@ export function Join ({ g, socket }: Props): JSX.Element {
             labelPlaceholder="Type Your Game Code"
             onChange={(e) => { setCode(e.target.value) } }
             onContentClick={() => { join() }}
-            contentRight={
-              <IconSearch onClick={join} />
-            }
+            contentRight={ <IconSend/> }
           />
         </Grid>
       </Grid.Container>
