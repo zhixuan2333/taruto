@@ -6,8 +6,10 @@
   "author": "https://github.com/zhixuan2333",
   "license": "MIT",
   "dependencies": {
+    "@nextui-org/react": "^1.0.0-beta.12",
     "@react-three/drei": "^9.51.3",
     "@react-three/fiber": "^8.10.0",
+    "@tabler/icons-react": "^2.1.2",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
@@ -29,6 +31,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:heavy": "react-scripts start --max_old_space_size=8128",
     "build": "react-scripts build",
     "server": "serve -s build",
     "test": "react-scripts test",

@@ -17,6 +17,7 @@ rules:
   {
     react/no-unknown-property:
       [2, { ignore: ["position", "args", "ref", "attach", "map"] }],
+    react/react-in-jsx-scope: 0,
   }
 ignorePatterns:
   - build/**

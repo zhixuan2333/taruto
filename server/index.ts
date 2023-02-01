@@ -20,6 +20,7 @@ const io = new Server(port, {
 console.log('Server started on port 8080')
 
 const Games = new Map<string, Game>()
+Games.set('lobby', c.gameCreate('lobby'))
 
 io.on('connection', (socket) => {
   console.log('a user connected')
@@ -29,37 +30,48 @@ io.on('connection', (socket) => {
     console.log(room)
   })
 
-  void socket.join('000-000-000')
-  // if user more than 4, disconnect
-  if (socket.rooms.size > 3) {
-    return
-  }
-
   // find game index
-  const GameIndex = '000-000-000'
-
-  // if game not found, create game
-  if (!Games.has(GameIndex)) {
-    Games.set(GameIndex, c.gameCreate(GameIndex))
-  }
-
-  let g = Games.get(GameIndex)
-  if (g === undefined) { return }
-
-  // if game players more than 4, disconnect
-  if (g.players.length > 3) {
-    return
-  }
+  let GameIndex: string = ''
 
   const sync = (g: Game): void => {
     Games.set(GameIndex, g)
     io.to(GameIndex).emit('update', Games.get(GameIndex))
   }
 
-  // if game players less than 4, join game
-  g = c.playerJoin(g, socket.id, 'test')
-  // send game data
-  sync(g)
+  // join lobby
+  void socket.join('lobby')
+  socket.emit('update', Games.get('lobby'))
+
+  // join room
+  socket.on('join', (room: string) => {
+    if (room === '') {
+      socket.emit('err', 'void')
+      return
+    }
+
+    // if game not found, create game
+    if (!Games.has(room)) {
+      Games.set(room, c.gameCreate(room))
+    }
+    let g = Games.get(room)
+    if (g === undefined) { return }
+
+    // if user more than 4, disconnect
+    if (g.players.length > 3) {
+      socket.emit('err', 'full')
+      return
+    }
+    void socket.join(room)
+    console.log('join room: ' + room)
+    GameIndex = room
+    void socket.leave('lobby')
+
+    // if game players less than 4, join game
+    g = c.playerJoin(g, socket.id, 'test')
+
+    // send game data
+    sync(g)
+  })
 
   // sync game data every event
   socket.onAny(() => {
