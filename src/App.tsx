@@ -5,6 +5,7 @@ import './App.css'
 import { GameScene } from './components/canvas'
 
 import { Join } from './components/join'
+import { LoadPage } from './components/loadpage'
 
 const socket = io('http://localhost:8080')
 
@@ -47,18 +48,13 @@ function App (): JSX.Element {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       {game !== null
-        ? (
-        <>
-        <GameScene g={game} socket={socket} />
-        <Join g={game} socket={socket} />
-        </>
-          )
-        : (
-          <>
-            <h1>loading</h1>
-            <p>Status: {connected}</p>
-          </>
-          )}
+        ? (<>
+          <GameScene g={game} socket={socket} />
+          {game.id === 'lobby' ? <Join g={game} socket={socket} /> : null}
+        </>)
+        : (<>
+          <LoadPage status={connected} />
+        </>)}
     </div>
   )
 }

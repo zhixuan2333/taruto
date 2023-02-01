@@ -229,7 +229,6 @@ export function GameScene ({ g, socket }: Props): JSX.Element {
               <span>
                 player size: {g.players.length}
               </span>
-              <span>Name: {g.players[0].name}</span>
               <span>Next Roll: {g.CubeNumber}</span>
               <span>
                 Next select Koma: {g.nowSelectKoma}

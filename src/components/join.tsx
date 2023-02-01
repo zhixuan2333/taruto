@@ -1,24 +1,16 @@
 import { Grid, Input } from '@nextui-org/react'
 import { IconSearch } from '@tabler/icons-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { Props } from './canvas'
 
 export function Join ({ g, socket }: Props): JSX.Element {
   const [code, setCode] = useState<string>('')
-  // const [loading, setLoading] = useState<boolean>(false)
 
   const join = (): void => {
     // setLoading(true)
     console.log('join', code)
     socket.emit('join', code)
   }
-
-  useEffect(() => {
-    if (g.id !== '') {
-      setCode(g.id)
-      // setLoading(false)
-    }
-  }, [g.id])
 
   return (
     <>
@@ -39,9 +31,11 @@ export function Join ({ g, socket }: Props): JSX.Element {
             size='xl'
             clearable
             bordered
+            contentClickable
             color="primary"
             labelPlaceholder="Type Your Game Code"
             onChange={(e) => { setCode(e.target.value) } }
+            onContentClick={() => { join() }}
             contentRight={
               <IconSearch onClick={join} />
             }

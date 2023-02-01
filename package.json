@@ -31,6 +31,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:heavy": "react-scripts start --max_old_space_size=8128",
     "build": "react-scripts build",
     "server": "serve -s build",
     "test": "react-scripts test",
