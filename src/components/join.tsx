@@ -1,9 +1,13 @@
-import { Grid, Input } from '@nextui-org/react'
+import { Input, Text, createTheme, NextUIProvider } from '@nextui-org/react'
 import { IconSend } from '@tabler/icons-react'
 import { useState } from 'react'
 import type { Props } from './canvas'
 
-export function Join ({ g, socket }: Props): JSX.Element {
+const darkTheme = createTheme({
+  type: 'dark',
+})
+
+export function Join({ socket }: Props): JSX.Element {
   const [code, setCode] = useState<string>('')
 
   const join = (): void => {
@@ -13,34 +17,59 @@ export function Join ({ g, socket }: Props): JSX.Element {
 
   return (
     <>
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: 'rgba(255,255,255,0.9)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
-      <Grid.Container gap={4} justify="center">
-        <Grid>
-          <Input
-            size='xl'
-            clearable
-            bordered
-            contentClickable
-            color="primary"
-            labelPlaceholder="Type Your Game Code"
-            onChange={(e) => { setCode(e.target.value) } }
-            onContentClick={() => { join() }}
-            contentRight={ <IconSend/> }
-          />
-        </Grid>
-      </Grid.Container>
-    </div>
+      <NextUIProvider theme={darkTheme}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <div>
+            <Text
+              h1
+              size={60}
+              css={{
+                textGradient: '45deg, $purple600 -20%, $pink600 100%',
+              }}
+              weight='bold'
+            >
+              Play
+            </Text>
+            <Text
+              h1
+              size={60}
+              css={{
+                textGradient: '45deg, $yellow600 -20%, $red600 100%',
+              }}
+              weight='bold'
+            >
+              Taruto
+            </Text>
+            <Input
+              size='xl'
+              clearable
+              contentClickable
+              color='primary'
+              placeholder='Type Your Game Code'
+              onChange={(e) => {
+                setCode(e.target.value)
+              }}
+              onContentClick={() => {
+                join()
+              }}
+              contentRight={<IconSend />}
+            />
+          </div>
+        </div>
+      </NextUIProvider>
     </>
-
   )
 }

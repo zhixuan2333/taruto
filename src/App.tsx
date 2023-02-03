@@ -3,13 +3,12 @@ import React, { useEffect, useState } from 'react'
 import io from 'socket.io-client'
 import './App.css'
 import { GameScene } from './components/canvas'
-
 import { Join } from './components/join'
 import { LoadPage } from './components/loadpage'
 
 const socket = io('http://localhost:8080')
 
-function App (): JSX.Element {
+function App(): JSX.Element {
   const [connected, setConnected] = useState(0) // 1 connected, 2 connect timedout
   const [game, setGame] = useState<Game | null>(null)
 
@@ -46,15 +45,23 @@ function App (): JSX.Element {
   }, [])
 
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      {game !== null
-        ? (<>
+    <div
+      style={{
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#0b0b0d',
+      }}
+    >
+      {game !== null ? (
+        <>
           <GameScene g={game} socket={socket} />
           {game.id === 'lobby' ? <Join g={game} socket={socket} /> : null}
-        </>)
-        : (<>
+        </>
+      ) : (
+        <>
           <LoadPage status={connected} />
-        </>)}
+        </>
+      )}
     </div>
   )
 }
