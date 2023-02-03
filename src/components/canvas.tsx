@@ -120,9 +120,6 @@ function Komas({ g, socket }: Props): JSX.Element {
           break
         }
       }
-      if (i === g.nowSelectKoma) {
-        ref.current.setColorAt(i, new THREE.Color(0xffffff))
-      }
     }
 
     // Update the instance

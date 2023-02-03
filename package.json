@@ -36,7 +36,7 @@
     "server": "serve -s build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "server:start": "nodemon",
+    "server:watch": "nodemon",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json,css}'"
   },

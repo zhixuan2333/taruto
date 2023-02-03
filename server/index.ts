@@ -107,7 +107,6 @@ io.on('connection', (socket) => {
         g,
         nowPlayerKomasInGoal.map((k) => k.id),
       )
-      g = c.setNowSelectKoma(g, g.ableSelectKoma[0])
       sync(g)
       return
     }
@@ -119,7 +118,6 @@ io.on('connection', (socket) => {
       g,
       nowPlayerKomasInSpawnmasu.map((k) => k.id),
     )
-    g = c.setNowSelectKoma(g, g.ableSelectKoma[0])
 
     // State 100 -> 101
     // Games.set(GameIndex, c.ChangeState(Games.get(GameIndex)!, 101));

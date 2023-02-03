@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { Game, Koma, Masu } from '../lib/socket'
 
 // Game
-export function gameCreate (RoomID: string): Game {
+export function gameCreate(RoomID: string): Game {
   const game: Game = {
     id: RoomID,
     name: 'test',
@@ -13,48 +13,42 @@ export function gameCreate (RoomID: string): Game {
     koma: Komas,
     nowUser: null,
     CubeNumber: 1,
-    nowSelectKoma: null,
     nowState: 0,
-    ableSelectKoma: []
+    ableSelectKoma: [],
   }
   return game
 }
 
-export function start (g: Game): Game {
+export function start(g: Game): Game {
   g.nowUser = 0
   g.nowState = 100
   return g
 }
 
-export function ChangeState (g: Game, state: number): Game {
+export function ChangeState(g: Game, state: number): Game {
   g.nowState = state
   return g
 }
 
-export function setAbleSelectKoma (g: Game, koma: number[]): Game {
+export function setAbleSelectKoma(g: Game, koma: number[]): Game {
   g.ableSelectKoma = koma
   return g
 }
 
-export function setNowSelectKoma (g: Game, koma: number | null): Game {
-  g.nowSelectKoma = koma
-  return g
-}
-
 // Cube
-function randomCube (): number {
+function randomCube(): number {
   // random number 1~6
   const random = Math.floor(Math.random() * 6) + 1
   return random
 }
 
-export function roll (g: Game): Game {
+export function roll(g: Game): Game {
   g.CubeNumber = randomCube()
   return g
 }
 
 // Player
-export function playerJoin (g: Game, socketID: string, name: string): Game {
+export function playerJoin(g: Game, socketID: string, name: string): Game {
   if (g.players.length >= 4) {
     return g
   }
@@ -62,12 +56,12 @@ export function playerJoin (g: Game, socketID: string, name: string): Game {
     id: g.players.length,
     socketID,
     // TODO: nameの重複チェック, random name
-    name
+    name,
   })
   return g
 }
 
-export function playerLeave (g: Game, socketID: string): Game {
+export function playerLeave(g: Game, socketID: string): Game {
   const player = g.players.find((p) => p.socketID === socketID)
   if (player == null) {
     return g
@@ -82,19 +76,30 @@ export function playerLeave (g: Game, socketID: string): Game {
 // Masu
 
 // Koma
-export function komaMove (g: Game, koma: number, step: number): Game {
+export function komaMove(g: Game, koma: number, step: number): Game {
   let nextMasu = g.koma[koma].Position
   for (let i = 0; i < step; i++) {
     // if true point is goal
-    if (g.masus[nextMasu]._type === 2 &&
+    if (
+      g.masus[nextMasu]._type === 2 &&
       g.masus[nextMasu].GoalPlayer === g.koma[koma].owner &&
-      g.masus[nextMasu]._nextForGoal !== null) {
+      g.masus[nextMasu]._nextForGoal !== null
+    ) {
       // set koma position to goal point
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       nextMasu = g.masus[nextMasu]._nextForGoal!
       continue
     }
 
+    // in goal and next point have Koma
+    if (
+      g.masus[nextMasu]._type === 1 &&
+      g.koma.find((k) => k.Position === g.masus[nextMasu]._next) != null
+    ) {
+      // set koma is in goal point
+      g.koma[koma].isGoal = true
+      break
+    }
     // Because there is no next point
     if (g.masus[nextMasu]._next === null) {
       // set koma is in goal point
@@ -109,12 +114,12 @@ export function komaMove (g: Game, koma: number, step: number): Game {
   return g
 }
 
-export function komaMoveTo (g: Game, koma: number, masu: number): Game {
+export function komaMoveTo(g: Game, koma: number, masu: number): Game {
   g.koma[koma].Position = masu
   return g
 }
 
-export function komaDeath (g: Game, koma: number): Game {
+export function komaDeath(g: Game, koma: number): Game {
   g.koma[koma].Position = g.koma[koma]._spawnMasu
   return g
 }
@@ -125,7 +130,7 @@ interface setupProps {
   Komas: Koma[]
 }
 
-function setup (): setupProps {
+function setup(): setupProps {
   const Masus: Masu[] = []
   const Komas: Koma[] = []
   const mapPosition: THREE.Vector3[] = [
@@ -151,7 +156,7 @@ function setup (): setupProps {
     new THREE.Vector3(1, 0, 1),
     new THREE.Vector3(2, 0, 1),
     new THREE.Vector3(1, 0, 2),
-    new THREE.Vector3(2, 0, 2)
+    new THREE.Vector3(2, 0, 2),
   ]
   const playerCount: number = 4
   const masuCount: number = 18
@@ -211,7 +216,7 @@ function setup (): setupProps {
         _type: 0,
         _prev: null,
         _next: null,
-        _nextForGoal: null
+        _nextForGoal: null,
       }
 
       // Masu type
@@ -230,7 +235,7 @@ function setup (): setupProps {
       }
 
       // 普通の Masu は-1
-      if (masu._type === 1 || masu._type === 3) {
+      if (masu._type === 2) {
         masu.GoalPlayer = i - 1
         if (i === 0) {
           masu.GoalPlayer = 3
@@ -268,7 +273,7 @@ function setup (): setupProps {
         _spawnMasu: masuBeginIndex + 14 + k,
         _beginMasu: null,
         _endMasu: null,
-        Position: masuBeginIndex + 14 + k
+        Position: masuBeginIndex + 14 + k,
       })
     }
 
