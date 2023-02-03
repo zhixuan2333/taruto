@@ -57,7 +57,7 @@ function App(): JSX.Element {
         <>
           <GameScene g={game} socket={socket} />
           {game.id === 'lobby' ? <Join g={game} socket={socket} /> : null}
-          {game.nowState === 0 && game.id !== 'lobby' ? <User g={game} socket={socket} /> : null}
+          {game.id !== 'lobby' ? <User g={game} socket={socket} /> : null}
           {game.nowState === 0 && game.id !== 'lobby' ? (
             <LoadPage status={0} text='Wait for other player' />
           ) : null}
