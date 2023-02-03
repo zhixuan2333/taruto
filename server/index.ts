@@ -11,10 +11,9 @@ const io = new Server(port, {
   cors: {
     origin: '*',
     methods: 'GET,PUT,POST,DELETE',
-    allowedHeaders:
-            'Content-Type, Authorization, X-Requested-With, X-Socket-ID',
-    credentials: true
-  }
+    allowedHeaders: 'Content-Type, Authorization, X-Requested-With, X-Socket-ID',
+    credentials: true,
+  },
 })
 
 console.log('Server started on port 8080')
@@ -54,7 +53,9 @@ io.on('connection', (socket) => {
       Games.set(room, c.gameCreate(room))
     }
     let g = Games.get(room)
-    if (g === undefined) { return }
+    if (g === undefined) {
+      return
+    }
 
     // if user more than 4, disconnect
     if (g.players.length > 3) {
@@ -68,6 +69,10 @@ io.on('connection', (socket) => {
 
     // if game players less than 4, join game
     g = c.playerJoin(g, socket.id, 'test')
+    // if game players lenth is 4, start game
+    if (g.players.length === 4) {
+      g = c.start(g)
+    }
 
     // send game data
     sync(g)
@@ -78,24 +83,18 @@ io.on('connection', (socket) => {
     io.to(GameIndex).emit('update', Games.get(GameIndex))
   })
 
-  socket.on('start', () => {
-    let g = Games.get(GameIndex)
-    if (g === undefined) { return }
-    console.log('start')
-    // TODO: check if state is not 0, return
-
-    g = c.start(g)
-    sync(g)
-  })
-
   socket.on('roll', () => {
     let g = Games.get(GameIndex)
-    if (g === undefined) { return }
+    if (g === undefined) {
+      return
+    }
 
     g = c.roll(g)
     // now Player Komas
     const nowPlayerKomas = g.koma.filter((k) => {
-      if (g === undefined) { return false }
+      if (g === undefined) {
+        return false
+      }
       return k.owner === g.nowUser
     })
     // filter if koma is not in goal
@@ -104,16 +103,22 @@ io.on('connection', (socket) => {
     })
     // if roll is 6, return
     if (g.CubeNumber === 6) {
-      g = c.setAbleSelectKoma(g, nowPlayerKomasInGoal.map((k) => k.id))
+      g = c.setAbleSelectKoma(
+        g,
+        nowPlayerKomasInGoal.map((k) => k.id),
+      )
       g = c.setNowSelectKoma(g, g.ableSelectKoma[0])
       sync(g)
       return
     }
     // filter koma not in spawnmasu
     const nowPlayerKomasInSpawnmasu = nowPlayerKomasInGoal.filter((k) => {
-      return (k.Position !== k._spawnMasu)
+      return k.Position !== k._spawnMasu
     })
-    g = c.setAbleSelectKoma(g, nowPlayerKomasInSpawnmasu.map((k) => k.id))
+    g = c.setAbleSelectKoma(
+      g,
+      nowPlayerKomasInSpawnmasu.map((k) => k.id),
+    )
     g = c.setNowSelectKoma(g, g.ableSelectKoma[0])
 
     // State 100 -> 101
@@ -122,35 +127,32 @@ io.on('connection', (socket) => {
     sync(g)
   })
 
-  socket.on('select', (data: number) => {
-    // TODO: WIP
-    let g = Games.get(GameIndex)
-    if (g === undefined) { return }
-
-    if (g.nowSelectKoma === null) { return }
-    // if not able select koma, return
-    // 0: comfirm
-    // 1: next koma
-    // 2: prev koma
-
-    switch (data) {
-      case 0:
-        // Koma went to next step
-        g = c.komaMove(g, g.nowSelectKoma, g.CubeNumber)
-        break
-
-      case 1:
-        // next koma
-        g = c.setNowSelectKoma(g, g.ableSelectKoma[0])
-        break
-      case -1:
-        // prev koma
+  socket.on('move', (data: number) => {
+    if (data === undefined) {
+      return
     }
+    if (!(data >= 0 && data < 16)) {
+      return
+    }
+
+    let g = Games.get(GameIndex)
+    if (g === undefined) {
+      return
+    }
+
+    // if not able select koma, return
+    if (!g.ableSelectKoma.includes(data)) {
+      return
+    }
+    g = c.komaMove(g, data, g.CubeNumber)
+    sync(g)
   })
 
   socket.on('disconnect', () => {
     let g = Games.get(GameIndex)
-    if (g === undefined) { return }
+    if (g === undefined) {
+      return
+    }
 
     // remove player
     void socket.leave(GameIndex)

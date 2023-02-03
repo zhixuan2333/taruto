@@ -84,7 +84,7 @@ function Maps({ temp, allMasu }: MapProps): JSX.Element {
   )
 }
 
-function Komas({ g }: Props): JSX.Element {
+function Komas({ g, socket }: Props): JSX.Element {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const ref = useRef<THREE.InstancedMesh>(null!)
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -138,7 +138,11 @@ function Komas({ g }: Props): JSX.Element {
       ref={ref}
       args={[undefined, undefined, g.koma.length]}
       onClick={(e) => {
+        if (g.nowUser === null) return
+        if (g.players[g.nowUser].socketID !== socket.id) return
+
         console.log(e.instanceId)
+        socket.emit('move', e.instanceId)
       }}
     >
       <boxGeometry args={[0.4, 0.1, 0.4]} />
