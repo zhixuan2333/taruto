@@ -77,7 +77,7 @@ function Maps({ temp, allMasu }: MapProps): JSX.Element {
     }
   }, [allMasu, temp])
   return (
-    <instancedMesh castShadow ref={ref} args={[undefined, undefined, allMasu.length]}>
+    <instancedMesh castShadow receiveShadow ref={ref} args={[undefined, undefined, allMasu.length]}>
       <boxGeometry args={[0.8, 0.1, 0.8]} />
       <meshPhongMaterial ref={shaderRef} />
     </instancedMesh>
