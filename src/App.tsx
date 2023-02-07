@@ -6,6 +6,7 @@ import { GameScene } from './components/canvas'
 import { Join } from './components/join'
 import { LoadPage } from './components/loadpage'
 import { User } from './components/user'
+import { Who } from './components/who'
 
 const socket = io('http://localhost:8080')
 
@@ -58,6 +59,7 @@ function App(): JSX.Element {
           <GameScene g={game} socket={socket} />
           {game.id === 'lobby' ? <Join g={game} socket={socket} /> : null}
           {game.id !== 'lobby' ? <User g={game} socket={socket} /> : null}
+          {game.id !== 'lobby' ? <Who g={game} socket={socket} /> : null}
           {game.nowState === 0 && game.id !== 'lobby' ? (
             <LoadPage status={0} text='Wait for other player' />
           ) : null}
