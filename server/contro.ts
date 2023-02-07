@@ -72,6 +72,14 @@ export function playerLeave(g: Game, socketID: string): Game {
   g.players = g.players.filter((p) => p.socketID !== socketID)
   return g
 }
+// Next player
+export function nextPlayer(g: Game): Game {
+  if (g.nowUser == null) {
+    return g
+  }
+  g.nowUser = (g.nowUser + 1) % 4
+  return g
+}
 
 // Masu
 
@@ -122,6 +130,29 @@ export function komaMoveTo(g: Game, koma: number, masu: number): Game {
 export function komaDeath(g: Game, koma: number): Game {
   g.koma[koma].Position = g.koma[koma]._spawnMasu
   return g
+}
+
+export function komaSelectAble(g: Game): number[] {
+      // now Player Komas
+      const nowPlayerKomas = g.koma.filter((k) => {
+        if (g === undefined) {
+          return false
+        }
+        return k.owner === g.nowUser
+      })
+      // filter if koma is not in goal
+      const nowPlayerKomasNotGoal = nowPlayerKomas.filter((k) => {
+        return !k.isGoal
+      })
+      // if roll is 6, return
+      if (g.CubeNumber === 6) {
+        return nowPlayerKomasNotGoal.map((k) => k.id)
+      }
+      // filter koma not in spawnmasu
+      const nowPlayerKomasInSpawnmasu = nowPlayerKomasNotGoal.filter((k) => {
+        return k.Position !== k._spawnMasu
+      })
+      return nowPlayerKomasInSpawnmasu.map((k) => k.id)
 }
 // other
 

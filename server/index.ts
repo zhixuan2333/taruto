@@ -88,40 +88,23 @@ io.on('connection', (socket) => {
     if (g === undefined) {
       return
     }
-
-    g = c.roll(g)
-    // now Player Komas
-    const nowPlayerKomas = g.koma.filter((k) => {
-      if (g === undefined) {
-        return false
-      }
-      return k.owner === g.nowUser
-    })
-    // filter if koma is not in goal
-    const nowPlayerKomasInGoal = nowPlayerKomas.filter((k) => {
-      return !k.isGoal
-    })
-    // if roll is 6, return
-    if (g.CubeNumber === 6) {
-      g = c.setAbleSelectKoma(
-        g,
-        nowPlayerKomasInGoal.map((k) => k.id),
-      )
-      sync(g)
+    if (g.nowState !== 100) {
       return
     }
-    // filter koma not in spawnmasu
-    const nowPlayerKomasInSpawnmasu = nowPlayerKomasInGoal.filter((k) => {
-      return k.Position !== k._spawnMasu
-    })
-    g = c.setAbleSelectKoma(
-      g,
-      nowPlayerKomasInSpawnmasu.map((k) => k.id),
-    )
 
-    // State 100 -> 101
-    // Games.set(GameIndex, c.ChangeState(Games.get(GameIndex)!, 101));
+    g = c.roll(g)
+    const selectAbleKoma = c.komaSelectAble(g)
+    g = c.setAbleSelectKoma(g, selectAbleKoma)
+    if (g.CubeNumber === 6) {
+      g = c.ChangeState(g, 102)
+    } else {
+      g = c.ChangeState(g, 101)
+    }
 
+    if (selectAbleKoma.length === 0) {
+      g = c.nextPlayer(g)
+      g = c.ChangeState(g, 100)
+    }
     sync(g)
   })
 
@@ -137,12 +120,24 @@ io.on('connection', (socket) => {
     if (g === undefined) {
       return
     }
+    if (!(g.nowState === 101 || g.nowState === 102)) {
+      return
+    }
 
     // if not able select koma, return
     if (!g.ableSelectKoma.includes(data)) {
       return
     }
     g = c.komaMove(g, data, g.CubeNumber)
+    const selectAbleKoma = c.komaSelectAble(g)
+    g = c.setAbleSelectKoma(g, selectAbleKoma)
+
+    // Change state
+    if (g.nowState === 101) {
+      g = c.nextPlayer(g)
+    }
+    g = c.ChangeState(g, 100)
+
     sync(g)
   })
 

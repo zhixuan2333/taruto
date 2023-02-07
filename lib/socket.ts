@@ -49,6 +49,7 @@ interface Game {
   // 100: Cube roll
   // 101: Koma move
   // 102: Koma move and Cube roll
+  // 200: game end
   nowState: number
 
   CubeNumber: number
