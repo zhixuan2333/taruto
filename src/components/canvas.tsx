@@ -1,14 +1,14 @@
 /* eslint-disable react/no-unknown-property */
 import React, { Suspense, useEffect, useRef } from 'react'
+import * as THREE from 'three'
 import { Canvas, useLoader } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import * as THREE from 'three'
-
 import { TextureLoader } from 'three/src/loaders/TextureLoader.js'
 import { a, useSpring } from '@react-spring/three'
-import type { Game, Masu } from '../../lib/socket'
+
 import { Socket } from 'socket.io-client'
 import { DefaultEventsMap } from 'socket.io/dist/typed-events'
+import type { Game, Masu } from '../../lib/socket'
 
 interface MapProps {
   temp: THREE.Object3D
