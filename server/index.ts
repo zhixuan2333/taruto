@@ -3,8 +3,7 @@ import * as c from './contro'
 import type { Game } from '../lib/socket'
 
 // Got port form env
-// TODO: got port from env
-const port = 8080
+const port = Number(process.env.PORT) || 8080;
 
 const io = new Server(port, {
   /* options */

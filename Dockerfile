@@ -18,10 +18,7 @@ COPY tsconfig.json tsconfig.server.json ./
 COPY . .
 
 # Specify the environment variable for the port
-ENV PORT=3000
-
-# Expose the specified port to allow incoming traffic
-EXPOSE $PORT
+ARG PORT
 
 # start app
 CMD ["yarn", "server"]
