@@ -1,12 +1,14 @@
 import { Game } from 'lib/socket'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import io from 'socket.io-client'
 import './App.css'
+
 import { GameScene } from './components/canvas'
 import { Join } from './components/join'
 import { LoadPage } from './components/loadpage'
 import { User } from './components/user'
 import { Who } from './components/who'
+import { Win } from './components/win'
 
 const socket = io('http://localhost:8080')
 
@@ -60,9 +62,10 @@ function App(): JSX.Element {
           {game.id === 'lobby' ? <Join g={game} socket={socket} /> : null}
           {game.id !== 'lobby' ? <User g={game} socket={socket} /> : null}
           {game.id !== 'lobby' ? <Who g={game} socket={socket} /> : null}
-          {game.nowState === 0 && game.id !== 'lobby' ? (
+          {game.id !== 'lobby' && game.nowState === 0 ? (
             <LoadPage status={0} text='Wait for other player' />
           ) : null}
+          {game.nowState === 200 ? <Win g={game} socket={socket} /> : null}
         </>
       ) : (
         <>

@@ -33,6 +33,9 @@ io.on('connection', (socket) => {
   let GameIndex: string = ''
 
   const sync = (g: Game): void => {
+    if (g.id === 'lobby') {
+      return
+    }
     Games.set(GameIndex, g)
     io.to(GameIndex).emit('update', Games.get(GameIndex))
   }
@@ -129,8 +132,14 @@ io.on('connection', (socket) => {
       return
     }
     g = c.komaMove(g, data, g.CubeNumber)
-    const selectAbleKoma = c.komaSelectAble(g)
-    g = c.setAbleSelectKoma(g, selectAbleKoma)
+    // Get all koma
+    const komasInGoal = g.koma.filter((k) => g?.nowUser === k.owner && k.isGoal)
+    // if koma is 4, game end
+    if (komasInGoal.length === 4) {
+      g = c.ChangeState(g, 200)
+      sync(g)
+      return
+    }
 
     // Change state
     if (g.nowState === 101) {

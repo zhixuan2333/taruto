@@ -37,6 +37,11 @@ export function setAbleSelectKoma(g: Game, koma: number[]): Game {
 
 // Cube
 function randomCube(): number {
+  // DeBug
+  // eslint-disable-next-line no-constant-condition
+  if (0 + 1 === 1) {
+    return 6
+  }
   // random number 1~6
   const random = Math.floor(Math.random() * 6) + 1
   return random

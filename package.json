@@ -34,9 +34,10 @@
     "start:heavy": "react-scripts start --max_old_space_size=8128",
     "build": "react-scripts build",
     "server": "npx ts-node --project tsconfig.server.json server/index.ts",
+    "server:watch": "nodemon",
+    "server:debug": "TS_NODE_PROJECT=tsconfig.server.json node --inspect --require ts-node/register server/index.ts",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "server:watch": "nodemon",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json,css}'"
   },
@@ -65,7 +66,8 @@
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.31.11",
-    "prettier": "^2.8.3"
+    "prettier": "^2.8.3",
+    "ts-node": "^10.9.1"
   },
   "prettier": {
     "trailingComma": "all",
