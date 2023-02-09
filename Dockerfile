@@ -14,7 +14,8 @@ COPY yarn.lock ./yarn.lock
 RUN yarn install --silent --cache /tmp/empty-cache && rm -rf /tmp/empty-cache
 RUN yarn global add
 
+COPY tsconfig.json tsconfig.server.json ./
 COPY server lib ./
 
 # start app
-CMD ["yarn", "server:start"]
+CMD ["yarn", "server"]
