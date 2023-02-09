@@ -10,7 +10,11 @@ import { User } from './components/user'
 import { Who } from './components/who'
 import { Win } from './components/win'
 
-const socket = io('http://localhost:8080')
+let url = 'http://localhost:3000'
+if (process.env.URL !== undefined && process.env.URL !== '') {
+  url = process.env.URL
+}
+const socket = io(url)
 
 function App(): JSX.Element {
   const [connected, setConnected] = useState(0) // 1 connected, 2 connect timedout

@@ -3,7 +3,8 @@ import * as c from './contro'
 import type { Game } from '../lib/socket'
 
 // Got port form env
-const port = Number(process.env.PORT) || 8080;
+// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+const port = Number(process.env.PORT) || 8080
 
 const io = new Server(port, {
   /* options */
