@@ -119,6 +119,17 @@ export function komaMove(g: Game, koma: number, step: number): Game {
     nextMasu = g.masus[nextMasu]._next!
   }
   g.koma[koma].Position = nextMasu
+
+  // get All koma at nextMasu
+  const komaAtNextMasu = g.koma.filter(
+    (k) => k.Position === nextMasu && k.id !== koma && g.koma[koma].owner !== k.owner,
+  )
+  // if has koma, death
+  if (komaAtNextMasu.length > 1) {
+    komaAtNextMasu.forEach((k) => {
+      komaDeath(g, k.id)
+    })
+  }
   return g
 }
 
@@ -133,26 +144,26 @@ export function komaDeath(g: Game, koma: number): Game {
 }
 
 export function komaSelectAble(g: Game): number[] {
-      // now Player Komas
-      const nowPlayerKomas = g.koma.filter((k) => {
-        if (g === undefined) {
-          return false
-        }
-        return k.owner === g.nowUser
-      })
-      // filter if koma is not in goal
-      const nowPlayerKomasNotGoal = nowPlayerKomas.filter((k) => {
-        return !k.isGoal
-      })
-      // if roll is 6, return
-      if (g.CubeNumber === 6) {
-        return nowPlayerKomasNotGoal.map((k) => k.id)
-      }
-      // filter koma not in spawnmasu
-      const nowPlayerKomasInSpawnmasu = nowPlayerKomasNotGoal.filter((k) => {
-        return k.Position !== k._spawnMasu
-      })
-      return nowPlayerKomasInSpawnmasu.map((k) => k.id)
+  // now Player Komas
+  const nowPlayerKomas = g.koma.filter((k) => {
+    if (g === undefined) {
+      return false
+    }
+    return k.owner === g.nowUser
+  })
+  // filter if koma is not in goal
+  const nowPlayerKomasNotGoal = nowPlayerKomas.filter((k) => {
+    return !k.isGoal
+  })
+  // if roll is 6, return
+  if (g.CubeNumber === 6) {
+    return nowPlayerKomasNotGoal.map((k) => k.id)
+  }
+  // filter koma not in spawnmasu
+  const nowPlayerKomasInSpawnmasu = nowPlayerKomasNotGoal.filter((k) => {
+    return k.Position !== k._spawnMasu
+  })
+  return nowPlayerKomasInSpawnmasu.map((k) => k.id)
 }
 // other
 

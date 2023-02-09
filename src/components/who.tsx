@@ -6,6 +6,13 @@ export function Who({ g, socket }: Props): JSX.Element {
     if (g.players[index].socketID === socket.id) return 'あなた'
     return g.players[index].name
   }
+  const help = (): string => {
+    if (g.nowUser !== null && g.players[g.nowUser].socketID === socket.id) {
+      if (g.nowState === 100) return 'サイコロを振ってください'
+      return '駒を動かしてください'
+    }
+    return ''
+  }
   return (
     <>
       <div
@@ -28,7 +35,8 @@ export function Who({ g, socket }: Props): JSX.Element {
             backgroundColor: 'rgba(255,255,255,0.1)',
           }}
         >
-          {g.nowUser !== null ? getName(g.nowUser) + ' が操作中' : null}
+          {g.nowUser !== null ? getName(g.nowUser) + 'が操作中 ' : null}
+          {help()}
         </div>
       </div>
     </>

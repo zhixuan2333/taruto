@@ -64,6 +64,7 @@ export function User({ g, socket }: Props): JSX.Element {
                     position: 'relative',
                     bottom: '10px',
                     left: '0',
+                    // TODO: fix z-index
                     zIndex: 5,
                   }}
                 />
