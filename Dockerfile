@@ -11,11 +11,17 @@ ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json ./package.json
 COPY yarn.lock ./yarn.lock
 
-RUN yarn install --silent --cache /tmp/empty-cache && rm -rf /tmp/empty-cache
+RUN yarn install --frozen-lockfile && yarn cache clean
 RUN yarn global add
 
 COPY tsconfig.json tsconfig.server.json ./
-COPY server lib ./
+COPY . .
+
+# Specify the environment variable for the port
+ENV PORT=3000
+
+# Expose the specified port to allow incoming traffic
+EXPOSE $PORT
 
 # start app
 CMD ["yarn", "server"]
