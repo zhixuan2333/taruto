@@ -11,8 +11,8 @@ import { Who } from './components/who'
 import { Win } from './components/win'
 
 let url = 'http://localhost:3000'
-if (process.env.URL !== undefined && process.env.URL !== '') {
-  url = process.env.URL
+if (process.env.REACT_APP_SERVER_URL !== undefined && process.env.REACT_APP_SERVER_URL !== '') {
+  url = process.env.REACT_APP_SERVER_URL
 }
 const socket = io(url)
 
