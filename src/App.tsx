@@ -14,7 +14,11 @@ let url = 'http://localhost:3000'
 if (process.env.REACT_APP_SERVER_URL !== undefined && process.env.REACT_APP_SERVER_URL !== '') {
   url = process.env.REACT_APP_SERVER_URL
 }
-const socket = io(url)
+const socket = io(url, {
+  path: '/socket.io',
+  transports: ['websocket'],
+  secure: true,
+})
 
 function App(): JSX.Element {
   const [connected, setConnected] = useState(0) // 1 connected, 2 connect timedout
