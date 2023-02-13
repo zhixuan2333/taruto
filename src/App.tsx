@@ -10,7 +10,7 @@ import { User } from './components/user'
 import { Who } from './components/who'
 import { Win } from './components/win'
 
-let url = 'http://localhost:3000'
+let url = 'http://localhost:8080'
 if (process.env.REACT_APP_SERVER_URL !== undefined && process.env.REACT_APP_SERVER_URL !== '') {
   url = process.env.REACT_APP_SERVER_URL
 }
