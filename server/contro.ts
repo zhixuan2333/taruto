@@ -5,6 +5,7 @@ import { Game, Koma, Masu } from '../lib/socket'
 
 // Game
 export function gameCreate(RoomID: string): Game {
+  const { Masus, Komas } = setup()
   const game: Game = {
     id: RoomID,
     name: 'test',
@@ -37,9 +38,10 @@ export function setAbleSelectKoma(g: Game, koma: number[]): Game {
 
 // Cube
 function randomCube(): number {
+  return 6
   // random number 1~6
-  const random = Math.floor(Math.random() * 6) + 1
-  return random
+  // const random = Math.floor(Math.random() * 6) + 1
+  // return random
 }
 
 export function roll(g: Game): Game {
@@ -86,7 +88,34 @@ export function nextPlayer(g: Game): Game {
 // Koma
 export function komaMove(g: Game, koma: number, step: number): Game {
   let nextMasu = g.koma[koma].Position
+  const CheckOther = (): void => {
+    // fix this Goal state
+    const allThisPlayerKoma = g.koma.filter((k) => {
+      return g.nowUser === k.owner
+    })
+    const allThisPlayerGoalMasu = g.masus.filter((m) => {
+      return m._type === 1 && m.GoalPlayer === g.nowUser
+    })
+    for (let i = 0; i < allThisPlayerGoalMasu.length; i++) {
+      const a = allThisPlayerGoalMasu.length - i - 1
+      let flag = false
+      allThisPlayerKoma.forEach((k) => {
+        if (k.Position === allThisPlayerGoalMasu[a].id) {
+          k.isGoal = true
+          flag = true
+        }
+      })
+      if (!flag) {
+        break
+      }
+    }
+  }
   for (let i = 0; i < step; i++) {
+    if (g.koma[koma].Position === g.koma[koma]._spawnMasu) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      nextMasu = g.masus[nextMasu]._next!
+      break
+    }
     // if true point is goal
     if (
       g.masus[nextMasu]._type === 2 &&
@@ -119,6 +148,7 @@ export function komaMove(g: Game, koma: number, step: number): Game {
     nextMasu = g.masus[nextMasu]._next!
   }
   g.koma[koma].Position = nextMasu
+  CheckOther()
 
   // get All koma at nextMasu
   const komaAtNextMasu = g.koma.filter(
@@ -332,5 +362,3 @@ function setup(): setupProps {
   Masus[0]._next = 67
   return { Masus, Komas }
 }
-
-const { Masus, Komas } = setup()

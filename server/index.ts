@@ -33,6 +33,7 @@ io.on('connection', (socket) => {
   let GameIndex: string = ''
 
   const sync = (g: Game): void => {
+    console.log(GameIndex)
     if (g.id === 'lobby') {
       return
     }
@@ -166,6 +167,9 @@ io.on('connection', (socket) => {
     void socket.leave(GameIndex)
     g = c.playerLeave(g, socket.id)
     sync(g)
+    if (g.players.length === 0) {
+      Games.delete(GameIndex)
+    }
 
     console.log('user disconnected')
   })
