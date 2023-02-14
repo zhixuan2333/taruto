@@ -1,3 +1,4 @@
+import pino from 'pino'
 import { Server } from 'socket.io'
 import * as c from './contro'
 import type { Game } from '../lib/socket'
@@ -16,24 +17,28 @@ const io = new Server(port, {
   },
 })
 
-console.log('Server started on port 8080')
+const logger = pino({
+  level: process.env.LOG_LEVEL ?? 'info',
+})
+
+logger.info('Server started on port 8080')
 
 const Games = new Map<string, Game>()
 Games.set('lobby', c.gameCreate('lobby'))
 
 io.on('connection', (socket) => {
-  console.log('a user connected')
+  logger.info('[USER] connected' + socket.id)
 
   // for Debug
   socket.rooms.forEach((room) => {
-    console.log(room)
+    logger.debug('[ROOM] ' + socket.id + ' had in socket room ' + room)
   })
 
   // find game index
   let GameIndex: string = ''
 
   const sync = (g: Game): void => {
-    console.log(GameIndex)
+    logger.info('[GAME] sync ' + GameIndex)
     if (g.id === 'lobby') {
       return
     }
@@ -67,7 +72,6 @@ io.on('connection', (socket) => {
       return
     }
     void socket.join(room)
-    console.log('join room: ' + room)
     GameIndex = room
     void socket.leave('lobby')
 
@@ -77,6 +81,7 @@ io.on('connection', (socket) => {
     if (g.players.length === 4) {
       g = c.start(g)
     }
+    logger.info('[ROOM] ' + socket.id + ' join to ' + room)
 
     // send game data
     sync(g)
@@ -115,6 +120,7 @@ io.on('connection', (socket) => {
       g = c.nextPlayer(g)
       g = c.ChangeState(g, 100)
     }
+    logger.info('[GAME] roll ' + GameIndex)
     sync(g)
   })
 
@@ -154,6 +160,7 @@ io.on('connection', (socket) => {
     }
     g = c.ChangeState(g, 100)
 
+    logger.info('[GAME] move ' + GameIndex)
     sync(g)
   })
 
@@ -171,20 +178,11 @@ io.on('connection', (socket) => {
       Games.delete(GameIndex)
     }
 
-    console.log('user disconnected')
+    logger.info('[ROOM] ' + socket.id + ' leave from' + GameIndex)
   })
 })
 
 io.on('disconnect', (socket) => {
   socket.leave('room1')
-
-  // maybe not use
-  // delete Games.delete[socket.id];
-  // if (
-  //     Games["0"].nowUser !== null &&
-  //     Games["0"].nowUser.socketID == socket.id
-  // ) {
-  //     Games["0"].nowUser = null;
-  // }
   console.log('user disconnected')
 })
