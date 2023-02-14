@@ -125,7 +125,7 @@ export function komaMove(g: Game, koma: number, step: number): Game {
     (k) => k.Position === nextMasu && k.id !== koma && g.koma[koma].owner !== k.owner,
   )
   // if has koma, death
-  if (komaAtNextMasu.length > 1) {
+  if (komaAtNextMasu.length > 0) {
     komaAtNextMasu.forEach((k) => {
       komaDeath(g, k.id)
     })

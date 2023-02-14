@@ -94,6 +94,12 @@ io.on('connection', (socket) => {
     if (g.nowState !== 100) {
       return
     }
+    if (g.nowUser === null) {
+      return
+    }
+    if (g.players[g.nowUser].socketID !== socket.id) {
+      return
+    }
 
     g = c.roll(g)
     const selectAbleKoma = c.komaSelectAble(g)
