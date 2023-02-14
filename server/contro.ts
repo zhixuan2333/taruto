@@ -38,10 +38,10 @@ export function setAbleSelectKoma(g: Game, koma: number[]): Game {
 
 // Cube
 function randomCube(): number {
-  return 6
+  // return 6
   // random number 1~6
-  // const random = Math.floor(Math.random() * 6) + 1
-  // return random
+  const random = Math.floor(Math.random() * 6) + 1
+  return random
 }
 
 export function roll(g: Game): Game {

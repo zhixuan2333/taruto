@@ -173,12 +173,12 @@ io.on('connection', (socket) => {
     // remove player
     void socket.leave(GameIndex)
     g = c.playerLeave(g, socket.id)
+    logger.info('[ROOM] ' + socket.id + ' leave from' + GameIndex)
     sync(g)
     if (g.players.length === 0) {
       Games.delete(GameIndex)
+      logger.info('[GAME] delete ' + GameIndex)
     }
-
-    logger.info('[ROOM] ' + socket.id + ' leave from' + GameIndex)
   })
 })
 
