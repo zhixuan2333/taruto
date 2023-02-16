@@ -2,6 +2,8 @@
 
 import * as THREE from 'three'
 import { Game, Koma, Masu } from '../lib/socket'
+import { logger } from './logger'
+import { FirstName, LastName } from './name'
 
 // Game
 export function gameCreate(RoomID: string): Game {
@@ -54,11 +56,16 @@ export function playerJoin(g: Game, socketID: string, name: string): Game {
   if (g.players.length >= 4) {
     return g
   }
+  const getName = (): string => {
+    const fnNumber = Math.floor(Math.random() * FirstName.length)
+    const lnNumber = Math.floor(Math.random() * LastName.length)
+    return FirstName[fnNumber] + LastName[lnNumber]
+  }
   g.players.push({
     id: g.players.length,
     socketID,
     // TODO: nameの重複チェック, random name
-    name,
+    name: getName(),
   })
   return g
 }
@@ -128,15 +135,17 @@ export function komaMove(g: Game, koma: number, step: number): Game {
       continue
     }
 
+    // this is bug
     // in goal and next point have Koma
-    if (
-      g.masus[nextMasu]._type === 1 &&
-      g.koma.find((k) => k.Position === g.masus[nextMasu]._next) != null
-    ) {
-      // set koma is in goal point
-      g.koma[koma].isGoal = true
-      break
-    }
+    // if (
+    //   g.masus[nextMasu]._type === 1 &&
+    //   g.koma.find((k) => k.Position === g.masus[nextMasu]._next) != null
+    // ) {
+    //   // set koma is in goal point
+    //   g.koma[koma].isGoal = true
+    //   break
+    // }
+    //
     // Because there is no next point
     if (g.masus[nextMasu]._next === null) {
       // set koma is in goal point
@@ -149,6 +158,7 @@ export function komaMove(g: Game, koma: number, step: number): Game {
   }
   g.koma[koma].Position = nextMasu
   CheckOther()
+  logger.debug('check')
 
   // get All koma at nextMasu
   const komaAtNextMasu = g.koma.filter(

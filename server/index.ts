@@ -1,7 +1,7 @@
-import pino from 'pino'
 import { Server } from 'socket.io'
 import * as c from './contro'
 import type { Game } from '../lib/socket'
+import { logger } from './logger'
 
 // Got port form env
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -15,10 +15,6 @@ const io = new Server(port, {
     allowedHeaders: 'Content-Type, Authorization, X-Requested-With, X-Socket-ID',
     credentials: true,
   },
-})
-
-const logger = pino({
-  level: process.env.LOG_LEVEL ?? 'info',
 })
 
 logger.info('Server started on port 8080')

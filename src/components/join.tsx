@@ -58,7 +58,7 @@ export function Join({ socket }: Props): JSX.Element {
               clearable
               contentClickable
               color='primary'
-              placeholder='Type Your Game Code'
+              placeholder='コードを入力してね'
               onChange={(e) => {
                 setCode(e.target.value)
               }}

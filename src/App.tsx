@@ -6,7 +6,7 @@ import './App.css'
 import { GameScene } from './components/canvas'
 import { Join } from './components/join'
 import { LoadPage } from './components/loadpage'
-import { User } from './components/user'
+import { UserList } from './components/user_list'
 import { Who } from './components/who'
 import { Win } from './components/win'
 
@@ -68,7 +68,7 @@ function App(): JSX.Element {
         <>
           <GameScene g={game} socket={socket} />
           {game.id === 'lobby' ? <Join g={game} socket={socket} /> : null}
-          {game.id !== 'lobby' ? <User g={game} socket={socket} /> : null}
+          {game.id !== 'lobby' ? <UserList g={game} socket={socket} /> : null}
           {game.id !== 'lobby' ? <Who g={game} socket={socket} /> : null}
           {game.id !== 'lobby' && game.nowState === 0 ? (
             <LoadPage status={0} text='Wait for other player' />
