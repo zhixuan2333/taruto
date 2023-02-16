@@ -1,0 +1,25 @@
+env:
+  browser: true
+  es2021: true
+  node: true
+extends:
+  - plugin:react/recommended
+  - standard-with-typescript
+  - prettier
+overrides: []
+parserOptions:
+  ecmaVersion: latest
+  sourceType: module
+  project:
+    - tsconfig.json
+    - tsconfig.server.json
+plugins: []
+rules:
+  {
+    react/no-unknown-property:
+      [2, { ignore: ["position", "args", "ref", "attach", "map"] }],
+    react/react-in-jsx-scope: 0,
+  }
+ignorePatterns:
+  - build/**
+  - node_modules/**

@@ -1,311 +1,184 @@
-import { Server } from "socket.io";
-import * as THREE from "three";
+import { Server } from 'socket.io'
+import * as c from './contro'
+import type { Game } from '../lib/socket'
+import { logger } from './logger'
 
-const io = new Server(8080, {
-    /* options */
-    cors: {
-        origin: "*",
-        methods: "GET,PUT,POST,DELETE",
-        allowedHeaders:
-            "Content-Type, Authorization, X-Requested-With, X-Socket-ID",
-        credentials: true,
-    },
-});
+// Got port form env
+// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+const port = Number(process.env.PORT) || 8080
 
-console.log("Server started on port 8080");
+const io = new Server(port, {
+  /* options */
+  cors: {
+    origin: '*',
+    methods: 'GET,PUT,POST,DELETE',
+    allowedHeaders: 'Content-Type, Authorization, X-Requested-With, X-Socket-ID',
+    credentials: true,
+  },
+})
 
-type Masu = {
-    id: number;
+logger.info('Server started on port 8080')
 
-    Position: THREE.Vector3;
-    GoalPlayer: number;
+const Games = new Map<string, Game>()
+Games.set('lobby', c.gameCreate('lobby'))
 
-    // 0: normal, 1: goal, 2: turn 3: spawn
-    _type: number;
+io.on('connection', (socket) => {
+  logger.info('[USER] connected' + socket.id)
 
-    // 連結管理
-    _prev: number | null;
-    _next: number | null;
-    _nextForGoal: number | null;
-};
+  // for Debug
+  socket.rooms.forEach((room) => {
+    logger.debug('[ROOM] ' + socket.id + ' had in socket room ' + room)
+  })
 
-type Player = {
-    // 0~3
-    id: number;
-    socketID: string;
-    name: string;
-    // _beginMasu: Masu | null;
-    // _endMasu: Masu | null;
-    // _spawnMasu: Masu | null;
-};
+  // find game index
+  let GameIndex: string = ''
 
-type Koma = {
-    // 0~3
-    owner: number;
-    // 0~15
-    id: number;
-    _beginMasu: number | null;
-    _endMasu: number | null;
-    _spawnMasu: number;
-    Position: number;
-    isGoal: boolean;
-};
-
-type Game = {
-    id: string;
-    name: string;
-    players: Player[];
-    masus: Masu[];
-    koma: Koma[];
-    nowUser: Player | null;
-};
-
-export { Masu, Player, Koma, Game };
-
-const Games: Game[] = [];
-
-type setupProps = {
-    Masus: Masu[];
-    Komas: Koma[];
-};
-
-function setup(): setupProps {
-    const Masus: Masu[] = [];
-    const Komas: Koma[] = [];
-    let mapPosition: THREE.Vector3[] = [
-        // 左下を0,0にする
-        // turn point
-        new THREE.Vector3(5, 0, 0),
-        // Goal Masu
-        new THREE.Vector3(5, 0, 1),
-        new THREE.Vector3(5, 0, 2),
-        new THREE.Vector3(5, 0, 3),
-        new THREE.Vector3(5, 0, 4),
-        // normal
-        new THREE.Vector3(4, 0, 0),
-        new THREE.Vector3(4, 0, 1),
-        new THREE.Vector3(4, 0, 2),
-        new THREE.Vector3(4, 0, 3),
-        new THREE.Vector3(4, 0, 4),
-        new THREE.Vector3(3, 0, 4),
-        new THREE.Vector3(2, 0, 4),
-        new THREE.Vector3(1, 0, 4),
-        new THREE.Vector3(0, 0, 4),
-        // spawn
-        new THREE.Vector3(1, 0, 1),
-        new THREE.Vector3(2, 0, 1),
-        new THREE.Vector3(1, 0, 2),
-        new THREE.Vector3(2, 0, 2),
-    ];
-    const playerCount: number = 4;
-    const masuCount: number = 18;
-    const size: number = 10;
-    for (let i = 0; i < playerCount; i++) {
-        const masuBeginIndex = Masus.length;
-
-        let rawPostion: THREE.Vector3[] = [];
-
-        switch (i) {
-            default:
-                rawPostion = mapPosition;
-                break;
-
-            case 1: {
-                rawPostion = mapPosition.map((v) => {
-                    const v2 = v.clone();
-                    v2.x = v.z;
-                    v2.z = v.x;
-                    v2.z *= -1;
-                    v2.z += size;
-                    return v2;
-                });
-                break;
-            }
-
-            case 2: {
-                rawPostion = mapPosition.map((v) => {
-                    const v2 = v.clone();
-                    v2.x *= -1;
-                    v2.z *= -1;
-                    v2.x += size;
-                    v2.z += size;
-                    return v2;
-                });
-                break;
-            }
-
-            case 3: {
-                rawPostion = mapPosition.map((v) => {
-                    const v2 = v.clone();
-                    v2.x = v.z;
-                    v2.z = v.x;
-                    v2.x *= -1;
-                    v2.x += size;
-                    return v2;
-                });
-                break;
-            }
-        }
-        for (let j = 0; j < masuCount; j++) {
-            // const masu: Masu = new Masu(masuBeginIndex + j, rawPostion[j], 1);
-            const masu: Masu = {
-                id: masuBeginIndex + j,
-                Position: rawPostion[j],
-                GoalPlayer: i,
-                _type: 0,
-                _prev: null,
-                _next: null,
-                _nextForGoal: null,
-            };
-
-            // Masu type
-            if (j === 0) {
-                // turn
-                masu._type = 2;
-            } else if (j <= 4) {
-                // goal
-                masu._type = 1;
-            } else if (j <= 13) {
-                // normal
-                masu._type = 0;
-            } else if (j <= 17) {
-                // spawn
-                masu._type = 3;
-            }
-
-            // 普通の Masu は-1
-            if (j <= 4 && j >= 1) {
-                masu.GoalPlayer = i - 1;
-                if (i === 0) {
-                    masu.GoalPlayer = 3;
-                }
-            } else {
-                masu.GoalPlayer = -1;
-            }
-
-            Masus.push(masu);
-        }
-
-        // 連結管理
-        for (let i = 0; i < 9; i++) {
-            Masus[masuBeginIndex + 13 - i]._next = masuBeginIndex + 12 - i;
-        }
-        Masus[masuBeginIndex + 5]._next = masuBeginIndex;
-        for (let i = 0; i < 3; i++) {
-            Masus[masuBeginIndex + 1 + i]._next = masuBeginIndex + 2 + i;
-        }
-        // 14~17
-        for (let i = 0; i < 4; i++) {
-            Masus[masuBeginIndex + i + 14]._next = masuBeginIndex + 13;
-        }
-
-        // _nextForGoal
-        Masus[masuBeginIndex + 0]._nextForGoal = masuBeginIndex + 1;
-
-        // Komas
-        for (let k = 0; k < 4; k++) {
-            // _allKoma.push(new Koma(_allMasu[masuBeginIndex + 14 + k], i));
-            Komas.push({
-                id: i * 4 + k,
-                isGoal: false,
-                owner: i,
-                _spawnMasu: masuBeginIndex + 14 + k,
-                _beginMasu: null,
-                _endMasu: null,
-                Position: masuBeginIndex + 14 + k,
-            });
-        }
-
-        // start, end, spawn Masu for player
-        // const player: Player = {
-        //     _beginMasu: Masus[masuBeginIndex],
-        //     _endMasu: Masus[masuBeginIndex + masuCount - 1],
-        //     _spawnMasu: Masus[masuBeginIndex + 5],
-        // };
+  const sync = (g: Game): void => {
+    logger.info('[GAME] sync ' + GameIndex)
+    if (g.id === 'lobby') {
+      return
     }
-    for (let i = 1; i <= 3; i++) {
-        Masus[i * 18]._next = i * 18 - 4 - 1;
+    Games.set(GameIndex, g)
+    io.to(GameIndex).emit('update', Games.get(GameIndex))
+  }
+
+  // join lobby
+  void socket.join('lobby')
+  socket.emit('update', Games.get('lobby'))
+
+  // join room
+  socket.on('join', (room: string) => {
+    if (room === '') {
+      socket.emit('err', 'void')
+      return
     }
-    Masus[0]._next = 67;
-    return { Masus, Komas };
-}
 
-const { Masus, Komas } = setup();
-
-Games.push({
-    id: "1",
-    name: "room1",
-    players: [],
-    masus: Masus,
-    koma: Komas,
-    nowUser: null,
-});
-
-io.on("connection", (socket) => {
-    console.log("a user connected");
-
-    // for Debug
-    socket.rooms.forEach((room) => {
-        console.log(room);
-    });
+    // if game not found, create game
+    if (!Games.has(room)) {
+      Games.set(room, c.gameCreate(room))
+    }
+    let g = Games.get(room)
+    if (g === undefined) {
+      return
+    }
 
     // if user more than 4, disconnect
-    if (socket.rooms.size > 3) {
-        return;
+    if (g.players.length > 3) {
+      socket.emit('err', 'full')
+      return
     }
-    if (Games[0].players.length > 3) {
-        return;
+    void socket.join(room)
+    GameIndex = room
+    void socket.leave('lobby')
+
+    // if game players less than 4, join game
+    g = c.playerJoin(g, socket.id, 'test')
+    // if game players lenth is 4, start game
+    if (g.players.length === 4) {
+      g = c.start(g)
+    }
+    logger.info('[ROOM] ' + socket.id + ' join to ' + room)
+
+    // send game data
+    sync(g)
+  })
+
+  // sync game data every event
+  socket.onAny(() => {
+    io.to(GameIndex).emit('update', Games.get(GameIndex))
+  })
+
+  socket.on('roll', () => {
+    let g = Games.get(GameIndex)
+    if (g === undefined) {
+      return
+    }
+    if (g.nowState !== 100) {
+      return
+    }
+    if (g.nowUser === null) {
+      return
+    }
+    if (g.players[g.nowUser].socketID !== socket.id) {
+      return
     }
 
-    socket.join("room1");
-    Games[0] = {
-        ...Games[0],
-        players: [
-            ...Games[0].players,
-            {
-                id: Games[0].players.length,
-                socketID: socket.id,
-                name: "user " + Games[0].players.length,
-                // _beginMasu: null,
-                // _endMasu: null,
-                // _spawnMasu: null,
-            },
-        ],
-        nowUser:
-            Games[0].nowUser == null ? Games[0].players[0] : Games[0].nowUser,
-    };
-    Games[0].koma.forEach((koma) => {
-        if (koma.id === 4) {
-            if (Games[0].masus[koma.Position]._next !== null) {
-                koma.Position = Games[0].masus[koma.Position]._next!;
-            }
-        }
-    });
-    socket.emit("message", "Hello there!");
-    io.to("room1").emit("update", Games[0]);
-
-    socket.on("disconnect", () => {
-        socket.leave("room1");
-        Games[0] = {
-            ...Games[0],
-            players: Games[0].players.filter(
-                (user) => user.socketID != socket.id
-            ),
-            nowUser:
-                Games[0].nowUser?.socketID == socket.id
-                    ? Games[0].players[0]
-                    : Games[0].nowUser,
-        };
-        io.to("room1").emit("update", Games[0]);
-        console.log("user disconnected");
-    });
-});
-
-io.on("disconnect", (socket) => {
-    socket.leave("room1");
-    delete Games[0].players[socket.id];
-    if (Games[0].nowUser !== null && Games[0].nowUser.socketID == socket.id) {
-        Games[0].nowUser = null;
+    g = c.roll(g)
+    const selectAbleKoma = c.komaSelectAble(g)
+    g = c.setAbleSelectKoma(g, selectAbleKoma)
+    if (g.CubeNumber === 6) {
+      g = c.ChangeState(g, 102)
+    } else {
+      g = c.ChangeState(g, 101)
     }
-    console.log("user disconnected");
-});
+
+    if (selectAbleKoma.length === 0) {
+      g = c.nextPlayer(g)
+      g = c.ChangeState(g, 100)
+    }
+    logger.info('[GAME] roll ' + GameIndex)
+    sync(g)
+  })
+
+  socket.on('move', (data: number) => {
+    if (data === undefined) {
+      return
+    }
+    if (!(data >= 0 && data < 16)) {
+      return
+    }
+
+    let g = Games.get(GameIndex)
+    if (g === undefined) {
+      return
+    }
+    if (!(g.nowState === 101 || g.nowState === 102)) {
+      return
+    }
+
+    // if not able select koma, return
+    if (!g.ableSelectKoma.includes(data)) {
+      return
+    }
+    g = c.komaMove(g, data, g.CubeNumber)
+    // Get all koma
+    const komasInGoal = g.koma.filter((k) => g?.nowUser === k.owner && k.isGoal)
+    // if koma is 4, game end
+    if (komasInGoal.length === 4) {
+      g = c.ChangeState(g, 200)
+      sync(g)
+      return
+    }
+
+    // Change state
+    if (g.nowState === 101) {
+      g = c.nextPlayer(g)
+    }
+    g = c.ChangeState(g, 100)
+
+    logger.info('[GAME] move ' + GameIndex)
+    sync(g)
+  })
+
+  socket.on('disconnect', () => {
+    let g = Games.get(GameIndex)
+    if (g === undefined) {
+      return
+    }
+
+    // remove player
+    void socket.leave(GameIndex)
+    g = c.playerLeave(g, socket.id)
+    logger.info('[ROOM] ' + socket.id + ' leave from' + GameIndex)
+    sync(g)
+    if (g.players.length === 0) {
+      Games.delete(GameIndex)
+      logger.info('[GAME] delete ' + GameIndex)
+    }
+  })
+})
+
+io.on('disconnect', (socket) => {
+  socket.leave('room1')
+  console.log('user disconnected')
+})
