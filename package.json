@@ -33,6 +33,7 @@
   "scripts": {
     "start": "react-scripts start",
     "start:heavy": "react-scripts start --max_old_space_size=8128",
+    "serve": "serve -s build",
     "build": "react-scripts build",
     "server": "npx ts-node --project tsconfig.server.json server/index.ts | pino-pretty",
     "server:watch": "LOG_LEVEL=debug nodemon | pino-pretty",
