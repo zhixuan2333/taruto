@@ -23,7 +23,7 @@ const Games = new Map<string, Game>()
 Games.set('lobby', c.gameCreate('lobby'))
 
 io.on('connection', (socket) => {
-  logger.info('[USER] connected' + socket.id)
+  logger.info('[USER] connected ' + socket.id)
 
   // for Debug
   socket.rooms.forEach((room) => {
@@ -169,7 +169,7 @@ io.on('connection', (socket) => {
     // remove player
     void socket.leave(GameIndex)
     g = c.playerLeave(g, socket.id)
-    logger.info('[ROOM] ' + socket.id + ' leave from' + GameIndex)
+    logger.info('[ROOM] ' + socket.id + '  leave from ' + GameIndex)
     sync(g)
     if (g.players.length === 0) {
       Games.delete(GameIndex)
