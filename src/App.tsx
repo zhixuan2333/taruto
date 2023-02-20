@@ -71,7 +71,7 @@ function App(): JSX.Element {
           {game.id !== 'lobby' ? <UserList g={game} socket={socket} /> : null}
           {game.id !== 'lobby' ? <Who g={game} socket={socket} /> : null}
           {game.id !== 'lobby' && game.nowState === 0 ? (
-            <LoadPage status={0} text='ほかのみんなまだかなぁ？🥱' />
+            <LoadPage status={0} text='ほかのみんなまだかなぁ？' />
           ) : null}
           {game.nowState === 200 ? <Win g={game} socket={socket} /> : null}
         </>
