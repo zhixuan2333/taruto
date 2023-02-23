@@ -1,30 +1,35 @@
 # Taruto
 
 A online borad game, can played without your money.
+Play At Here: [https://taruto.demo.zhixuan.dev](https://taruto.demo.zhixuan.dev)
 
 ## Install
 
 ```sh
 git clone https://github.com/zhixuan2333/taruto.git
 cd taruto
-# install client dependencies
-cd ./client
-yarn install
-# install server dependencies
-cd ../server
+# install dependencies
 yarn install
 ```
 
 ## Run
 
 ```sh
-cd ./client
-yarn start
+# Start Server
+yarn server
+
+# Start Client At Onther Terminal
+yarn build
+yarn add --global serve
+yarn serve
 ```
 
-Run server in another terminal
+## License
 
-```sh
-cd ./server
-yarn start
-```
+Under MIT License
+
+## Author
+
+@zhixuan2333
+@Taiyaki256
+@wow-love
